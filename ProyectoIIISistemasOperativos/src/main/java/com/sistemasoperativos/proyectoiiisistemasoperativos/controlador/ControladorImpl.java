@@ -3,6 +3,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package com.sistemasoperativos.proyectoiiisistemasoperativos.controlador;
+import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.cargador.CargadorSistemaArchivos;
 import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.creador.CreadorSistemaArchivos;
 import java.util.List;
 /**
@@ -12,6 +13,7 @@ import java.util.List;
 
 public class ControladorImpl implements Controlador {
     private CreadorSistemaArchivos FormatClass = new CreadorSistemaArchivos();
+    private CargadorSistemaArchivos LoadFileSystemClass = new CargadorSistemaArchivos();
 
     @Override
     public String Format(String nombreArchivo, int tamanoDisco, int tamanoBloque, String contrasena) throws Exception {
@@ -125,7 +127,7 @@ public class ControladorImpl implements Controlador {
 
     @Override
     public String LoadFileSystem(String ruta) throws Exception {
-        throw new Exception("LoadFileSystem: No implementado");
+        return LoadFileSystemClass.CargarSistemaArchivos(ruta);
     }
 
     @Override

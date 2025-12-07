@@ -38,7 +38,7 @@ public abstract class ComandoPadre implements Comando{
     
     protected List<String> ExtraerParametros(String comando){
         String[] comandoArreglo = comando.split(" ");
-        ArrayList<String> comandoLista = (ArrayList<String>) Arrays.asList(comandoArreglo);
+        ArrayList<String> comandoLista = new ArrayList<>(Arrays.asList(comandoArreglo));
         comandoLista.remove(0);
         return comandoLista;
     }

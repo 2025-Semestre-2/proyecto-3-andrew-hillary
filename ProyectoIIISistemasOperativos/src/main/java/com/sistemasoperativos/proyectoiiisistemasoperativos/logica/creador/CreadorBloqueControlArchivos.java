@@ -31,6 +31,8 @@ public class CreadorBloqueControlArchivos {
         Inode root = CrearCarpetaRoot();
         raiz.AddDirectBlock(PunteroActual + TamanoBloques);
         home.AddDirectBlock(PunteroActual + TamanoBloques * 2);
+        home.setFather(PunteroActual);
+        root.setFather(PunteroActual + TamanoBloques);
         byte[] raizSerializado = raiz.serialize();
         System.arraycopy(raizSerializado, 0, espacio, 0, raizSerializado.length);
         byte[] homeSerializado = home.serialize();

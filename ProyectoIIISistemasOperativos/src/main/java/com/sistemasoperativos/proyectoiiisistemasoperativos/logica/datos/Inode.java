@@ -25,6 +25,7 @@ public class Inode {
     private int[] DirectBlocks;
     private int IndirectBlock;
     private int DoubleIndirectBlock;
+    private int Father;
     
     public Inode(int id, String name, String owner, String group, int permissions,
              boolean isDirectory) {
@@ -48,6 +49,7 @@ public class Inode {
 
         this.IndirectBlock = -1;
         this.DoubleIndirectBlock = -1;
+        this.Father = -1;
     }
 
     public Inode() {
@@ -114,9 +116,12 @@ public class Inode {
 
         // 212–215: DoubleIndirectBlock
         buffer.putInt(DoubleIndirectBlock);
+        
+        // 216–219: DoubleIndirectBlock
+        buffer.putInt(Father);
 
-        // 216–255: padding final
-        buffer.put(new byte[40]);
+        // 220–255: padding final
+        buffer.put(new byte[36]);
 
         return data;
     }
@@ -178,5 +183,9 @@ public class Inode {
             }
         }
         return false;
+    }
+    
+    public void setFather(int pointer){
+        Father = pointer;
     }
 }

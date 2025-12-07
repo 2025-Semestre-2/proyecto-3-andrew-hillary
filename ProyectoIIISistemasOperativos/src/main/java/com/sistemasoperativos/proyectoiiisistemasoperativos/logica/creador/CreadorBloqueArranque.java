@@ -13,25 +13,12 @@ public class CreadorBloqueArranque {
     private int TamanoDisco;
     private int TamanoBloque;
     private int CantidadBloques;
-    private int CantidadUsuarios = 8;
-    private int TamanoUsuarios = 256; //0: username, 64: full name, 128: password, 192: group;
-    private int CantidadGrupos = 20;
-    private int tamanoGrupo = 40; // 0: gid, 8: groupName
-    private int CantidadFBCs = 0;
-    private int TamanoFCB = 256; // Cada FCB ocupa 256 bytes:
-                     // 0:  id (4 bytes)
-                     // 4:  nombre del archivo (64 bytes, UTF-8 padded)
-                     // 68: owner (32 bytes)
-                     // 100: group (32 bytes)
-                     // 132: permissions (4 bytes)
-                     // 136: size (4 bytes)
-                     // 140: createdAt (8 bytes)
-                     // 148: modifiedAt (8 bytes)
-                     // 156: isDirectory (1 byte) + padding (3 bytes)
-                     // 160: directBlocks[12] = 48 bytes
-                     // 208: indirectBlock (4 bytes)
-                     // 212: doubleIndirectBlock (4 bytes)
-                     // 216–255: padding para alinear a 256 bytes
+    private int CantidadUsuarios;
+    private int TamanoUsuarios;
+    private int CantidadGrupos;
+    private int tamanoGrupo;
+    private int CantidadFBCs;
+    private int TamanoFCB ;
     private int TamanoBitMap;
     private int PunteroUsuarios;
     private int PunteroGrupos;
@@ -78,7 +65,6 @@ public class CreadorBloqueArranque {
         buffer.putInt(PunteroFCB);         // 52
         buffer.putInt(PunteroArchivos);    // 56
         buffer.putInt(0);                  // 60
-        buffer.putInt(0);                  // 64
 
         return buffer.array();
     }
