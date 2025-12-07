@@ -19,12 +19,15 @@ public class CargadorSistemaArchivos {
     private byte[] Grupos;
     private final CargadorBloqueControlArchivos BloqueControlArchivos;
     private byte[] ControlArchivos;
+    private final CargadorBloqueEspacioLibre BloqueEspacioLibre;
+    private byte[] EspacioLibre;
     
     public CargadorSistemaArchivos(){
         BloqueArranque = new CargadorBloqueArranque();
         BloqueUsuarios = new CargadorBloqueUsuarios();
         BloqueGrupo = new CargadorBloqueGrupos();
         BloqueControlArchivos = new CargadorBloqueControlArchivos();
+        BloqueEspacioLibre = new CargadorBloqueEspacioLibre();
     }
     
     public String CargarSistemaArchivos(String ruta) throws Exception{
@@ -38,6 +41,7 @@ public class CargadorSistemaArchivos {
         CopiarDatosBloqueUsuarios();
         CopiarDatosBloqueGrupo();
         CopiarDatosBloqueFCB();
+        CopiarDatosBloqueEspacioLibre();
     }
     
     private void CopiarDatosBloqueArranque(){
@@ -80,6 +84,19 @@ public class CargadorSistemaArchivos {
         }
         BloqueControlArchivos.Parse(ControlArchivos, cantidadFCB, tamanoFCB);
         System.out.println("\n" + BloqueControlArchivos.toString());
+    }
+    
+    private void CopiarDatosBloqueEspacioLibre(){
+        int puntero = BloqueArranque.getPunteroBipmap();
+        int tamanoBloque = BloqueArranque.getTamanoBloque();
+        int tamanoAlmacenamiento = BloqueArranque.getTamanoDisco();
+        int tamanoBipmap = (int) Math.ceil((tamanoAlmacenamiento * 0.8) / tamanoBloque);
+        EspacioLibre = new byte[tamanoBipmap];
+        for(int indice = 0; indice < tamanoBipmap; indice++){
+            EspacioLibre[indice] = SuperBloque[indice + puntero];
+        }
+        BloqueEspacioLibre.Parse(EspacioLibre, tamanoBipmap, tamanoBloque);
+        System.out.println("\n" + BloqueEspacioLibre.toString());
     }
     
     public void LoadFromFile(String rutaArchivo) throws Exception {
