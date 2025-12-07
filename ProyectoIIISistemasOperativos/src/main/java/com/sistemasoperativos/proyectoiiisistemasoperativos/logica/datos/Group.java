@@ -48,7 +48,7 @@ public class Group {
 
     public static Group deserialize(byte[] data) {
         String gid = new String(data, 0, 8, StandardCharsets.UTF_8).trim();
-        String name = new String(data, 8, 32, StandardCharsets.UTF_8).trim();
+        String name = new String(data, 8, 54, StandardCharsets.UTF_8).trim();
         return new Group(gid, name);
     }
 }

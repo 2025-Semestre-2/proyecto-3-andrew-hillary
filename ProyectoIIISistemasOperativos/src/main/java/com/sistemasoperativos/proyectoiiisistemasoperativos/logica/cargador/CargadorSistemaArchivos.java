@@ -15,10 +15,14 @@ public class CargadorSistemaArchivos {
     private final byte[] Arranque = new byte[64];
     private final CargadorBloqueUsuarios BloqueUsuarios;
     private byte[] Usuarios;
+    private final CargadorBloqueGrupos BloqueGrupo;
+    private byte[] Grupos;
+    
     
     public CargadorSistemaArchivos(){
         BloqueArranque = new CargadorBloqueArranque();
         BloqueUsuarios = new CargadorBloqueUsuarios();
+        BloqueGrupo = new CargadorBloqueGrupos();
     }
     
     public String CargarSistemaArchivos(String ruta) throws Exception{
@@ -30,6 +34,7 @@ public class CargadorSistemaArchivos {
     private void CopiarDatos(){
         CopiarDatosBloqueArranque();
         CopiarDatosBloqueUsuarios();
+        CopiarDatosBloqueGrupo();
     }
     
     private void CopiarDatosBloqueArranque(){
@@ -48,6 +53,18 @@ public class CargadorSistemaArchivos {
         }
         BloqueUsuarios.Parse(Usuarios, cantidadUsuarios, tamanoUsuarios);
         System.out.println("\n" + BloqueUsuarios.toString());
+    }
+    
+    private void CopiarDatosBloqueGrupo() {
+        int puntero = BloqueArranque.getPunteroGrupos();
+        int cantidadGrupos = BloqueArranque.getCantidadGrupos();
+        int tamanoGrupos = BloqueArranque.getTamanoGrupo();
+        Grupos = new byte[cantidadGrupos * tamanoGrupos];
+        for(int indice = 0; indice < Grupos.length; indice++){
+            Grupos[indice] = SuperBloque[indice + puntero];
+        }
+        BloqueGrupo.Parse(Grupos, cantidadGrupos, tamanoGrupos);
+        System.out.println("\n" + BloqueGrupo.toString());
     }
     
     public void LoadFromFile(String rutaArchivo) throws Exception {
