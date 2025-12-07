@@ -22,8 +22,8 @@ public class Passwd extends ComandoEntradaTeclado{
 
     @Override
     public void EjecutarComando(String comando) throws Exception {
-        if(ContarTamanoComando(comando) != 0){
-            throw new Exception("Passwd esperaba 0 argumentos, en cambio recibió " + ContarTamanoComando(comando) + " argumentos.");
+        if(ContarTamanoComando(comando) != 1){
+            throw new Exception("Passwd esperaba 1 argumentos, en cambio recibió " + ContarTamanoComando(comando) + " argumentos.");
         }
         ExtraerNombreUsuario(comando);
         SolicitarContrasena();
@@ -33,7 +33,7 @@ public class Passwd extends ComandoEntradaTeclado{
     
     private void SolicitarContrasena(){
         String contrasena = "";
-        while(!contrasena.equals("")){
+        while(contrasena.equals("")){
             System.out.print("Ingrese la contraseña del usuario: ");
             contrasena = Entrada.nextLine();
             if(!contrasena.matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9]).{6,}$")){

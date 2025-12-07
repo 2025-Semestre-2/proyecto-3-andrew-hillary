@@ -9,74 +9,71 @@ package com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem;
  * @author males
  */
 
+import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
 public class Disk {
 
-    private final RandomAccessFile archivoFS;  // archivo físico .fs
-    private final int blockSize;               // tamaño del bloque en bytes
-    private final int totalBlocks;             // número total de bloques del disco
+    private RandomAccessFile archivoFS;
+    private final int blockSize;
+    private final int totalBlocks;
+    private final String Path;
 
-    /**
-     * Constructor del disco virtual.
-     *
-     * @param path         Ruta/nombre del archivo .fs
-     * @param blockSize    Tamaño del bloque (bytes)
-     * @param totalBlocks  Número total de bloques del disco
-     */
     public Disk(String path, int blockSize, int totalBlocks) throws IOException {
         this.blockSize = blockSize;
         this.totalBlocks = totalBlocks;
-        this.archivoFS = new RandomAccessFile(path, "rw");
+        this.Path = path;
 
-        // se ajusta el tamaño del archivo por si es nuevo
-        this.archivoFS.setLength((long) blockSize * totalBlocks);
+        File f = new File(path);
+
+        // Abrir archivo
+        archivoFS = new RandomAccessFile(path, "rw");
+
+        // Solo si el archivo NO existe, lo inicializamos con el tamaño correcto
+        if (!f.exists() || f.length() == 0) {
+            archivoFS.setLength((long) blockSize * totalBlocks);
+        }
     }
 
-    /**
-     * Escribe un bloque completo en la posición indicada.
-     * @param blockNumber
-     * @param data
-     * @throws java.io.IOException
-     */
     public void writeBlock(int blockNumber, byte[] data) throws IOException {
-        if (blockNumber < 0 || blockNumber >= totalBlocks) {
-            throw new IllegalArgumentException("Número de bloque fuera de rango.");
-        }
+        if (blockNumber < 0 || blockNumber >= totalBlocks)
+            throw new IllegalArgumentException("Bloque fuera de rango.");
 
-        if (data.length > blockSize) {
-            throw new IllegalArgumentException("El tamaño del bloque excede blockSize.");
-        }
+        if (data.length > blockSize)
+            throw new IllegalArgumentException("El bloque excede blockSize.");
 
-        long offset = (long) blockNumber * blockSize;
-        archivoFS.seek(offset);
+        archivoFS.seek(blockNumber);
 
-        // Si el bloque es más pequeño, rellenar con ceros
-        byte[] padded = new byte[blockSize];
+        byte[] padded = new byte[data.length];
         System.arraycopy(data, 0, padded, 0, data.length);
 
         archivoFS.write(padded);
     }
 
-    /**
-     * Lee un bloque completo del disco.
-     * @param blockNumber
-     * @return 
-     * @throws java.io.IOException
-     */
     public byte[] readBlock(int blockNumber) throws IOException {
-        if (blockNumber < 0 || blockNumber >= totalBlocks) {
-            throw new IllegalArgumentException("Número de bloque fuera de rango.");
-        }
+        if (blockNumber < 0 || blockNumber >= totalBlocks)
+            throw new IllegalArgumentException("Bloque fuera de rango.");
 
         long offset = (long) blockNumber * blockSize;
-        archivoFS.seek(offset);
 
+        archivoFS.seek(offset);
         byte[] buffer = new byte[blockSize];
         archivoFS.readFully(buffer);
 
         return buffer;
+    }
+
+    public void flush() throws IOException {
+        archivoFS.getFD().sync();
+    }
+
+    public void close() throws IOException {
+        archivoFS.close();
+    }
+
+    public RandomAccessFile getArchivoFS() {
+        return archivoFS;
     }
 
     public int getBlockSize() {
@@ -87,19 +84,9 @@ public class Disk {
         return totalBlocks;
     }
 
-    /**
-     * Fuerza a guardar cambios en disco.
-     * @throws java.io.IOException
-     */
-    public void flush() throws IOException {
-        archivoFS.getFD().sync();
+    public String getPath() {
+        return Path;
     }
-
-    /**
-     * Cierra el archivo .fs correctamente.
-     * @throws java.io.IOException
-     */
-    public void close() throws IOException {
-        archivoFS.close();
-    }
+    
+    
 }

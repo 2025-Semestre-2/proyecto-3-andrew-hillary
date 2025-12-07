@@ -28,6 +28,9 @@ import com.sistemasoperativos.proyectoiiisistemasoperativos.vista.Comando;
 import com.sistemasoperativos.proyectoiiisistemasoperativos.vista.entradateclado.AutomaticFormat;
 import com.sistemasoperativos.proyectoiiisistemasoperativos.vista.entradateclado.Format;
 import com.sistemasoperativos.proyectoiiisistemasoperativos.vista.entradateclado.Login;
+import com.sistemasoperativos.proyectoiiisistemasoperativos.vista.entradateclado.Passwd;
+import com.sistemasoperativos.proyectoiiisistemasoperativos.vista.entradateclado.Su;
+import com.sistemasoperativos.proyectoiiisistemasoperativos.vista.entradateclado.UserAdd;
 
 import java.util.ArrayList;
 
@@ -64,9 +67,12 @@ public class CrearComandos {
         comandos.add(new MV("mv", controlador));
         comandos.add(new MkDir("mkdir", controlador));
         comandos.add(new OpenFile("openfile", controlador));
+        comandos.add(new Passwd("passwd", controlador));
         comandos.add(new PWD("pwd", controlador));
         comandos.add(new RM("rm", controlador));
+        comandos.add(new Su("su", controlador));
         comandos.add(new Touch("touch", controlador));
+        comandos.add(new UserAdd("useradd", controlador));
         comandos.add(new ViewFCB("viewfcb", controlador));
         comandos.add(new WhereIs("whereis", controlador));
         comandos.add(new Whoami("whoami", controlador));
