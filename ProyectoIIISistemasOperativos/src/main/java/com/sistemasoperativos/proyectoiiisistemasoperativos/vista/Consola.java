@@ -4,6 +4,7 @@
  */
 package com.sistemasoperativos.proyectoiiisistemasoperativos.vista;
 
+import java.io.File;
 import java.util.List;
 import java.util.Scanner;
 
@@ -13,13 +14,20 @@ import java.util.Scanner;
  */
 public class Consola {
     private final List<Comando> Comandos;
-    private Scanner Entrada;
+    private final Scanner Entrada;
     
     public Consola(List<Comando> comandos){
         Comandos = comandos;
+        Entrada = new Scanner(System.in);
     }
     
     public void IniciarSistemaArchivos(String ruta) throws Exception{
+        File archivo = new File(ruta);
+        if(ruta.equals("") || !archivo.exists()){
+            Comando comando = BuscarComando("aformat");
+            comando.EjecutarComando(ruta);
+            return;
+        }
         Comando comando = BuscarComando("loadfs");
         if(comando == null)
             throw new Exception("\nNo se encontró el comando para iniciar sesión.");
@@ -45,6 +53,7 @@ public class Consola {
             }
             catch(Exception e){
                 System.err.println(e.getMessage());
+                e.printStackTrace();
             }
         }
     }
@@ -56,13 +65,13 @@ public class Consola {
         throw new Exception("No existe el comando que indica la máquina y usuario actual");
     }
     
-    private Comando BuscarComando(String comandoString){
+    private Comando BuscarComando(String comandoString) throws Exception{
         for(Comando comando: Comandos){
             if(comando.CompararComando(comandoString)){
                 return comando;
             }
         }
-        return null;
+        throw new Exception("No existe el comando " + comandoString);
     }
     
     private String ExtraerComando(String comando){

@@ -25,8 +25,9 @@ public abstract class ComandoPadre implements Comando{
     @Override
     public boolean CompararComando(String comando){
         String[] comandoArreglo = comando.split(" ");
-        ArrayList<String> comandoLista = (ArrayList<String>) Arrays.asList(comandoArreglo);
+        ArrayList<String> comandoLista = new ArrayList<>(Arrays.asList(comandoArreglo));
         String nombreComando = comandoLista.get(0);
+        nombreComando = nombreComando.toLowerCase();
         return Comando.equals(nombreComando);
     }
     

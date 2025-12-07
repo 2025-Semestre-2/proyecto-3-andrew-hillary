@@ -39,17 +39,21 @@ public class Format extends ComandoEntradaTeclado{
     
     private void SolicitarNombre(){
         String nombre = "";
-        while(nombre.equals("")){
+        while(true){
             System.out.print("Escriba el nombre del sistema de archivos: ");
             nombre = Entrada.nextLine();
-            if(!nombre.matches("[A-Za-z0-9]+")){
+            if(nombre.equals(""))
+                break;
+            if(!nombre.matches("[A-Za-z0-9._-]+")){
                 System.err.println("""
                                    El nombre solo puede contener los siguientes caracteres:
                                         Letras de la 'A' a la 'Z'
                                    \tLetras de la 'a' a la 'z'
                                    \tNúmeros del '0' al '9'\n""");
                 nombre = "";
+                continue;
             }
+            break;
         }
         NombreArchivo = nombre;
     }
@@ -96,7 +100,7 @@ public class Format extends ComandoEntradaTeclado{
     
     private void SolicitarContrasena(){
         String contrasena = "";
-        while(!contrasena.equals("")){
+        while(contrasena.equals("")){
             System.out.print("Ingrese la contraseña del usuario root: ");
             contrasena = Entrada.nextLine();
             if(!contrasena.matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9]).{6,}$")){

@@ -1,8 +1,33 @@
 package com.sistemasoperativos.proyectoiiisistemasoperativos;
 
+import com.sistemasoperativos.proyectoiiisistemasoperativos.vista.noentradateclado.CloseFile;
+import com.sistemasoperativos.proyectoiiisistemasoperativos.vista.noentradateclado.Touch;
+import com.sistemasoperativos.proyectoiiisistemasoperativos.vista.noentradateclado.PWD;
+import com.sistemasoperativos.proyectoiiisistemasoperativos.vista.noentradateclado.MV;
+import com.sistemasoperativos.proyectoiiisistemasoperativos.vista.noentradateclado.Exit;
+import com.sistemasoperativos.proyectoiiisistemasoperativos.vista.noentradateclado.Chmod;
+import com.sistemasoperativos.proyectoiiisistemasoperativos.vista.noentradateclado.LoadFileSystem;
+import com.sistemasoperativos.proyectoiiisistemasoperativos.vista.noentradateclado.InfoFS;
+import com.sistemasoperativos.proyectoiiisistemasoperativos.vista.noentradateclado.OpenFile;
+import com.sistemasoperativos.proyectoiiisistemasoperativos.vista.noentradateclado.GroupAdd;
+import com.sistemasoperativos.proyectoiiisistemasoperativos.vista.noentradateclado.LS;
+import com.sistemasoperativos.proyectoiiisistemasoperativos.vista.noentradateclado.Cat;
+import com.sistemasoperativos.proyectoiiisistemasoperativos.vista.noentradateclado.Clear;
+import com.sistemasoperativos.proyectoiiisistemasoperativos.vista.noentradateclado.CD;
+import com.sistemasoperativos.proyectoiiisistemasoperativos.vista.noentradateclado.WhereIs;
+import com.sistemasoperativos.proyectoiiisistemasoperativos.vista.noentradateclado.Chgrp;
+import com.sistemasoperativos.proyectoiiisistemasoperativos.vista.noentradateclado.Edit;
+import com.sistemasoperativos.proyectoiiisistemasoperativos.vista.noentradateclado.Whoami;
+import com.sistemasoperativos.proyectoiiisistemasoperativos.vista.noentradateclado.CurrentUser;
+import com.sistemasoperativos.proyectoiiisistemasoperativos.vista.noentradateclado.RM;
+import com.sistemasoperativos.proyectoiiisistemasoperativos.vista.noentradateclado.ViewFCB;
+import com.sistemasoperativos.proyectoiiisistemasoperativos.vista.noentradateclado.MkDir;
+import com.sistemasoperativos.proyectoiiisistemasoperativos.vista.noentradateclado.Chown;
 import com.sistemasoperativos.proyectoiiisistemasoperativos.controlador.Controlador;
-import com.sistemasoperativos.proyectoiiisistemasoperativos.controlador.entradateclado.*;
 import com.sistemasoperativos.proyectoiiisistemasoperativos.vista.Comando;
+import com.sistemasoperativos.proyectoiiisistemasoperativos.vista.entradateclado.AutomaticFormat;
+import com.sistemasoperativos.proyectoiiisistemasoperativos.vista.entradateclado.Format;
+import com.sistemasoperativos.proyectoiiisistemasoperativos.vista.entradateclado.Login;
 
 import java.util.ArrayList;
 
@@ -21,6 +46,7 @@ public class CrearComandos {
         Clear clear = new Clear("clear", controlador);
 
         // === Comandos estándar ===
+        comandos.add(new AutomaticFormat("aformat", controlador));
         comandos.add(new CD("cd", controlador));
         comandos.add(new Cat("cat", controlador));
         comandos.add(new Chgrp("chgrp", controlador));
@@ -29,6 +55,7 @@ public class CrearComandos {
         comandos.add(new CloseFile("closefile", controlador));
         comandos.add(new CurrentUser("currentuser", controlador));
         comandos.add(new Exit("exit", controlador));
+        comandos.add(new Format("format", controlador));
         comandos.add(new GroupAdd("groupadd", controlador));
         comandos.add(new InfoFS("infofs", controlador));
         comandos.add(new Login("login", controlador));
@@ -46,7 +73,7 @@ public class CrearComandos {
         comandos.add(clear);
 
         // === Comando Edit (diferente constructor) ===
-        comandos.add(new Edit("edit", controlador, clear));
+        comandos.add(new Edit("note", controlador, clear));
 
         return comandos;
     }

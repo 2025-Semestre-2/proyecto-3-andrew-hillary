@@ -24,6 +24,8 @@ public class Login extends ComandoEntradaTeclado{
         if(ContarTamanoComando(comando) != 0){
             throw new Exception("Login esperaba 0 argumentos, en cambio recibió " + ContarTamanoComando(comando) + " argumentos.");
         }
+        Usuario = "";
+        Contrasena = "";
         SolicitarUsuario();
         SolicitarContrasena();
         String respuesta = ControladorAsignado.Login(Usuario, Contrasena);
@@ -36,7 +38,7 @@ public class Login extends ComandoEntradaTeclado{
             System.out.print("Escriba el nombre completo del usuario: ");
             nombre = Entrada.nextLine();
             if(nombre.equals("")){
-                System.err.println("Escriba una contraseña");
+                System.err.println("Debe escribir un nombre");
             }
         }
         Usuario = nombre;
@@ -44,11 +46,11 @@ public class Login extends ComandoEntradaTeclado{
     
     private void SolicitarContrasena(){
         String contrasena = "";
-        while(!contrasena.equals("")){
+        while(contrasena.equals("")){
             System.out.print("Ingrese la contraseña del usuario: ");
             contrasena = Entrada.nextLine();
-            if(contrasena.matches("")){
-                System.err.println("Escriba una contrase");
+            if(contrasena.equals("")){
+                System.err.println("Debe escribir una contraseña");
                 continue;
             }
             Contrasena = contrasena;

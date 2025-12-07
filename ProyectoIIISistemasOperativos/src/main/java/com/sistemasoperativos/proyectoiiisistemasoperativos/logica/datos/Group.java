@@ -36,12 +36,12 @@ public class Group {
     }
     
     public byte[] serialize() {
-        byte[] data = new byte[40];
+        byte[] data = new byte[64];
         byte[] idBytes = GroupID.getBytes(StandardCharsets.UTF_8);
         int idLength = Math.min(idBytes.length, 8);
         System.arraycopy(idBytes, 0, data, 0, idLength);
         byte[] nameBytes = GroupName.getBytes(StandardCharsets.UTF_8);
-        int nameLength = Math.min(nameBytes.length, 32);
+        int nameLength = Math.min(nameBytes.length, 54);
         System.arraycopy(nameBytes, 0, data, 8, nameLength);
         return data;
     }

@@ -26,6 +26,49 @@ public class Inode {
     private int IndirectBlock;
     private int DoubleIndirectBlock;
     
+    public Inode(int id, String name, String owner, String group, int permissions,
+             boolean isDirectory) {
+        this.ID = id;
+        this.Name = name;
+        this.Owner = owner;
+        this.Group = group;
+        this.Permissions = permissions;
+
+        this.IsDirectory = isDirectory;
+        this.Size = 0; // archivo vacío inicialmente
+
+        long now = System.currentTimeMillis();
+        this.CreatedAt = now;
+        this.ModifiedAt = now;
+
+        this.DirectBlocks = new int[12];
+        for (int i = 0; i < 12; i++) {
+            this.DirectBlocks[i] = -1; // -1 = sin asignar
+        }
+
+        this.IndirectBlock = -1;
+        this.DoubleIndirectBlock = -1;
+    }
+
+    public Inode() {
+        this.ID = 0;
+        this.Name = "";
+        this.Owner = "";
+        this.Group = "";
+        this.Permissions = 0;
+        this.Size = 0;
+        this.CreatedAt = 0L;
+        this.ModifiedAt = 0L;
+        this.IsDirectory = false;
+
+        this.DirectBlocks = new int[12];
+        for (int i = 0; i < 12; i++) {
+            this.DirectBlocks[i] = 0;
+        }
+        this.IndirectBlock = -1;
+        this.DoubleIndirectBlock = -1;
+    }
+    
     public byte[] serialize() {
         byte[] data = new byte[256]; // tamaño fijo del inode
         ByteBuffer buffer = ByteBuffer.wrap(data);
@@ -122,5 +165,18 @@ public class Inode {
         byte[] raw = new byte[maxBytes];
         buffer.get(raw);
         return new String(raw, StandardCharsets.UTF_8).trim();
+    }
+    
+    public boolean AddDirectBlock(int pointer){
+        for(int indice = 0; indice < DirectBlocks.length; indice += 4){
+            if(DirectBlocks[indice + 3] != 0){
+                DirectBlocks[indice]     = (byte) (pointer);
+                DirectBlocks[indice + 1] = (byte) (pointer >> 8);
+                DirectBlocks[indice + 2] = (byte) (pointer >> 16);
+                DirectBlocks[indice + 3] = (byte) (pointer >> 24);
+                return true;
+            }
+        }
+        return false;
     }
 }

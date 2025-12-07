@@ -5,7 +5,7 @@
 package com.sistemasoperativos.proyectoiiisistemasoperativos;
 
 import com.sistemasoperativos.proyectoiiisistemasoperativos.controlador.Controlador;
-import com.sistemasoperativos.proyectoiiisistemasoperativos.controlador.ControladorFalso;
+import com.sistemasoperativos.proyectoiiisistemasoperativos.controlador.ControladorImpl;
 import com.sistemasoperativos.proyectoiiisistemasoperativos.vista.Comando;
 import com.sistemasoperativos.proyectoiiisistemasoperativos.vista.Consola;
 import java.util.List;
@@ -25,7 +25,7 @@ public class ProyectoIIISistemasOperativos {
         if(args.length == 1){
             Archivo = args[0];
         }
-        Controlador controlador = new ControladorFalso();
+        Controlador controlador = new ControladorImpl();
         List<Comando> comandos = CrearComandos.crear(controlador);
         Consola consola = new Consola(comandos);
         try{
@@ -34,7 +34,7 @@ public class ProyectoIIISistemasOperativos {
             consola.LeerTexto();
         }
         catch(Exception e){
-            System.err.println(e.getMessage());
+            e.printStackTrace();
         }
     }
 }
