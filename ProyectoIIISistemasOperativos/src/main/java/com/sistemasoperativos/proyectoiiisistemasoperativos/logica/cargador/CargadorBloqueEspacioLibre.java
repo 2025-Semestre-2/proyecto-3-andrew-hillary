@@ -41,8 +41,8 @@ public class CargadorBloqueEspacioLibre {
 
     @Override
     public String toString() {
-        long espacioLibreBytes = (long) libres * tamanoBloque;
-        long espacioOcupadoBytes = (long) ocupados * tamanoBloque;
+        long espacioLibreBytes = (long) libres * tamanoBloque * 8;
+        long espacioOcupadoBytes = (long) ocupados * tamanoBloque * 8;
 
         double espacioLibreMB = espacioLibreBytes / (1024.0 * 1024.0);
         double espacioOcupadoMB = espacioOcupadoBytes / (1024.0 * 1024.0);

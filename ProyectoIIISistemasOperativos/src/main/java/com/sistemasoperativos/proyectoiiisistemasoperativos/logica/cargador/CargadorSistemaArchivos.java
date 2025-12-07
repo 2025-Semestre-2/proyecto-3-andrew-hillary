@@ -89,8 +89,7 @@ public class CargadorSistemaArchivos {
     private void CopiarDatosBloqueEspacioLibre(){
         int puntero = BloqueArranque.getPunteroBipmap();
         int tamanoBloque = BloqueArranque.getTamanoBloque();
-        int tamanoAlmacenamiento = BloqueArranque.getTamanoDisco();
-        int tamanoBipmap = (int) Math.ceil((tamanoAlmacenamiento * 0.8) / tamanoBloque);
+        int tamanoBipmap = BloqueArranque.getTamanoBitMap();
         EspacioLibre = new byte[tamanoBipmap];
         for(int indice = 0; indice < tamanoBipmap; indice++){
             EspacioLibre[indice] = SuperBloque[indice + puntero];

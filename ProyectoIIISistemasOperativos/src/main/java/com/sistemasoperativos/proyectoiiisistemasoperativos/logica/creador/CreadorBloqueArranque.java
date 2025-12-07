@@ -30,16 +30,7 @@ public class CreadorBloqueArranque {
         
     }
     
-    private void ActualizarTamanos(){
-        CantidadBloques = (int) Math.ceil(TamanoDisco * 0.8) / TamanoBloque;
-        TamanoBitMap = (int) Math.ceil(TamanoDisco * 0.8);
-    }
-    
     public byte[] Serialize() {
-        ActualizarTamanos();
-        byte[] data = new byte[TamanoBloque];
-
-        int offset = 0;
 
         java.nio.ByteBuffer buffer = java.nio.ByteBuffer.allocate(TamanoBloque);
         buffer.order(java.nio.ByteOrder.LITTLE_ENDIAN); // recomendado para FS educativos

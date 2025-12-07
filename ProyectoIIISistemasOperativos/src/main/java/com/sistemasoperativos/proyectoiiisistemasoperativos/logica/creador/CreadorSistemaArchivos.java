@@ -79,6 +79,8 @@ public class CreadorSistemaArchivos {
         BloqueArranque.setTamanoUsuarios(256);
         BloqueArranque.setTamanoGrupo(64);
         BloqueArranque.setTamanoFCB(256);
+        BloqueArranque.setTamanoBitMap((int) Math.ceil((TamanoAlmacenamiento * 0.8) / TamanoBloque) / 8);
+        BloqueArranque.setCantidadBloques((int) Math.ceil((TamanoAlmacenamiento * 0.8) / TamanoBloque));
         Arranque = BloqueArranque.Serialize();
         BloqueUsuario.setCantidadUsuarios(30);
         BloqueUsuario.setContrasenaRoot(ContrasenaRoot);
