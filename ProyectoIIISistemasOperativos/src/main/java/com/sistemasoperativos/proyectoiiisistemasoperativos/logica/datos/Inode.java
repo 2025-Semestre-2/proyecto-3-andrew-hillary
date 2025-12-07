@@ -13,6 +13,7 @@ import java.nio.charset.StandardCharsets;
  * @author andre
  */
 public class Inode {
+
     private int ID;
     private String Name;
     private String Owner;
@@ -22,30 +23,26 @@ public class Inode {
     private long CreatedAt;
     private long ModifiedAt;
     private boolean IsDirectory;
-    private int[] DirectBlocks;
+    private final int[] DirectBlocks = new int[12];
     private int IndirectBlock;
     private int DoubleIndirectBlock;
     private int Father;
-    
-    public Inode(int id, String name, String owner, String group, int permissions,
-             boolean isDirectory) {
+
+    public Inode(int id, String name, String owner, String group, int permissions, boolean isDirectory) {
         this.ID = id;
         this.Name = name;
         this.Owner = owner;
         this.Group = group;
         this.Permissions = permissions;
-
         this.IsDirectory = isDirectory;
-        this.Size = 0; // archivo vacío inicialmente
 
         long now = System.currentTimeMillis();
         this.CreatedAt = now;
         this.ModifiedAt = now;
+        this.Size = 0;
 
-        this.DirectBlocks = new int[12];
-        for (int i = 0; i < 12; i++) {
-            this.DirectBlocks[i] = -1; // -1 = sin asignar
-        }
+        for (int i = 0; i < 12; i++)
+            DirectBlocks[i] = -1;
 
         this.IndirectBlock = -1;
         this.DoubleIndirectBlock = -1;
@@ -59,87 +56,60 @@ public class Inode {
         this.Group = "";
         this.Permissions = 0;
         this.Size = 0;
-        this.CreatedAt = 0L;
-        this.ModifiedAt = 0L;
+        this.CreatedAt = 0;
+        this.ModifiedAt = 0;
         this.IsDirectory = false;
 
-        this.DirectBlocks = new int[12];
-        for (int i = 0; i < 12; i++) {
-            this.DirectBlocks[i] = 0;
-        }
+        for (int i = 0; i < 12; i++)
+            DirectBlocks[i] = -1;
+
         this.IndirectBlock = -1;
         this.DoubleIndirectBlock = -1;
+        this.Father = -1;
     }
-    
+
+    // SERIALIZACIÓN
     public byte[] serialize() {
-        byte[] data = new byte[256]; // tamaño fijo del inode
+        byte[] data = new byte[256];
         ByteBuffer buffer = ByteBuffer.wrap(data);
-        buffer.order(ByteOrder.BIG_ENDIAN); // consistente y portable
+        buffer.order(ByteOrder.LITTLE_ENDIAN);
 
-        // 0–3: ID
         buffer.putInt(ID);
-
-        // 4–67: Name (64 bytes)
         writeFixedString(buffer, Name, 64);
-
-        // 68–99: Owner (32 bytes)
         writeFixedString(buffer, Owner, 32);
-
-        // 100–131: Group (32 bytes)
         writeFixedString(buffer, Group, 32);
-
-        // 132–135: Permissions
         buffer.putInt(Permissions);
-
-        // 136–139: Size
         buffer.putInt(Size);
-
-        // 140–147: CreatedAt
         buffer.putLong(CreatedAt);
-
-        // 148–155: ModifiedAt
         buffer.putLong(ModifiedAt);
-
-        // 156: IsDirectory (1 byte)
         buffer.put((byte)(IsDirectory ? 1 : 0));
 
-        // 157–159: padding
         buffer.put(new byte[3]);
 
-        // 160–207: DirectBlocks (12 × 4)
-        for (int i = 0; i < 12; i++) {
+        // Direct blocks
+        for (int i = 0; i < 12; i++)
             buffer.putInt(DirectBlocks[i]);
-        }
 
-        // 208–211: IndirectBlock
         buffer.putInt(IndirectBlock);
-
-        // 212–215: DoubleIndirectBlock
         buffer.putInt(DoubleIndirectBlock);
-        
-        // 216–219: DoubleIndirectBlock
         buffer.putInt(Father);
 
-        // 220–255: padding final
         buffer.put(new byte[36]);
-
         return data;
     }
 
-    private void writeFixedString(ByteBuffer buffer, String value, int maxBytes) {
-        byte[] raw = value == null ? new byte[0] : value.getBytes(StandardCharsets.UTF_8);
-        int len = Math.min(raw.length, maxBytes);
+    private void writeFixedString(ByteBuffer buffer, String s, int max) {
+        byte[] raw = s.getBytes(StandardCharsets.UTF_8);
+        int len = Math.min(raw.length, max);
         buffer.put(raw, 0, len);
-        if (len < maxBytes) {
-            buffer.put(new byte[maxBytes - len]); // rellenar con ceros
-        }
+        if (len < max) buffer.put(new byte[max - len]);
     }
 
+    // DESERIALIZACIÓN
     public static Inode deserialize(byte[] data) {
-        ByteBuffer buffer = ByteBuffer.wrap(data);
-        buffer.order(ByteOrder.BIG_ENDIAN);
-
         Inode inode = new Inode();
+        ByteBuffer buffer = ByteBuffer.wrap(data);
+        buffer.order(ByteOrder.LITTLE_ENDIAN);
 
         inode.ID = buffer.getInt();
         inode.Name = readFixedString(buffer, 64);
@@ -151,41 +121,90 @@ public class Inode {
         inode.ModifiedAt = buffer.getLong();
         inode.IsDirectory = buffer.get() == 1;
 
-        buffer.get(new byte[3]); // padding
+        buffer.get(new byte[3]);
 
-        inode.DirectBlocks = new int[12];
-        for (int i = 0; i < 12; i++) {
+        for (int i = 0; i < 12; i++)
             inode.DirectBlocks[i] = buffer.getInt();
-        }
 
         inode.IndirectBlock = buffer.getInt();
         inode.DoubleIndirectBlock = buffer.getInt();
-
-        // padding final se ignora
+        inode.Father = buffer.getInt();
 
         return inode;
     }
 
-    private static String readFixedString(ByteBuffer buffer, int maxBytes) {
-        byte[] raw = new byte[maxBytes];
+    private static String readFixedString(ByteBuffer buffer, int max) {
+        byte[] raw = new byte[max];
         buffer.get(raw);
         return new String(raw, StandardCharsets.UTF_8).trim();
     }
-    
-    public boolean AddDirectBlock(int pointer){
-        for(int indice = 0; indice < DirectBlocks.length; indice += 4){
-            if(DirectBlocks[indice + 3] != 0){
-                DirectBlocks[indice]     = (byte) (pointer);
-                DirectBlocks[indice + 1] = (byte) (pointer >> 8);
-                DirectBlocks[indice + 2] = (byte) (pointer >> 16);
-                DirectBlocks[indice + 3] = (byte) (pointer >> 24);
+
+
+    public boolean AddDirectBlock(int pointer) {
+        for (int i = 0; i < DirectBlocks.length; i++) {
+            if (DirectBlocks[i] == -1) {
+                DirectBlocks[i] = pointer;
                 return true;
             }
         }
         return false;
     }
-    
-    public void setFather(int pointer){
-        Father = pointer;
+
+    public void setFather(int father) {
+        this.Father = father;
     }
+
+    public int getID() {
+        return ID;
+    }
+
+    public String getName() {
+        return Name;
+    }
+
+    public String getOwner() {
+        return Owner;
+    }
+
+    public String getGroup() {
+        return Group;
+    }
+
+    public int getPermissions() {
+        return Permissions;
+    }
+
+    public int getSize() {
+        return Size;
+    }
+
+    public long getCreatedAt() {
+        return CreatedAt;
+    }
+
+    public long getModifiedAt() {
+        return ModifiedAt;
+    }
+
+    public boolean isIsDirectory() {
+        return IsDirectory;
+    }
+
+    public int[] getDirectBlocks() {
+        return DirectBlocks;
+    }
+
+    public int getIndirectBlock() {
+        return IndirectBlock;
+    }
+
+    public int getDoubleIndirectBlock() {
+        return DoubleIndirectBlock;
+    }
+
+    public int getFather() {
+        return Father;
+    }
+
+    
 }
