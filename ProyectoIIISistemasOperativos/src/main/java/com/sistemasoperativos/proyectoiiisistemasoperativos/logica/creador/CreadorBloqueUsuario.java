@@ -30,6 +30,7 @@ public class CreadorBloqueUsuario {
     }
     
     public byte[] Serialize(){
+        Root = CrearUsuarioRoot(ContrasenaRoot);
         byte[] serializacion = new byte[CantidadUsuarios * TamanoUsuarios];
         for(int indice = 0; indice < serializacion.length; indice++){
             serializacion[indice] = 0;

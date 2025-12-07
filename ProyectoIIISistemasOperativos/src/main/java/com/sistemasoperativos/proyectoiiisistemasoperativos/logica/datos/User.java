@@ -82,4 +82,16 @@ public class User {
         return new String(src, offset, length, 
             java.nio.charset.StandardCharsets.UTF_8).trim();
     }
+    
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("=== Usuario ===\n");
+        sb.append("UserName:  ").append(UserName).append("\n");
+        sb.append("FullName:  ").append(FullName).append("\n");
+        sb.append("Password:  ").append(Password).append("\n");
+        sb.append("GroupID:   ").append(GroupID).append("\n");
+        sb.append("================\n");
+        return sb.toString();
+    }
 }
