@@ -5,6 +5,7 @@
 package com.sistemasoperativos.proyectoiiisistemasoperativos.logica.cargador;
 
 import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.datos.User;
+import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem.users.UsersManager;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,28 +32,21 @@ public class CargadorBloqueUsuarios {
         // Recorremos cada usuario
         for (int i = 0; i < cantidadUsuarios; i++) {
 
-            int offset = i * tamanoUsuario;
-
-            // Si el bloque está vacío, dejamos de leer
-            boolean esVacio = true;
-            for (int j = offset; j < offset + tamanoUsuario; j++) {
-                if (data[j] != 0) {
-                    esVacio = false;
-                    break;
-                }
+            byte[] copia = new byte[tamanoUsuario];
+            
+            int base = tamanoUsuario * i;
+            
+            for(int indice = 0; indice < tamanoUsuario; indice++){
+                copia[indice] = data[indice + base];
             }
-            if (esVacio) {
-                continue; // espacio sin usar
-            }
+            
+            if(copia[0] == 0)
+                break;
 
-            // Extraemos los 256 bytes del usuario
-            byte[] usuarioBytes = new byte[tamanoUsuario];
-            System.arraycopy(data, offset, usuarioBytes, 0, tamanoUsuario);
-
-            // Convertimos bytes → User
-            User u = User.deserialize(usuarioBytes);
+            User u = User.deserialize(copia);
             Usuarios.add(u);
         }
+        UsersManager.setUsers(Usuarios);
     }
 
     public List<User> getUsuarios() {

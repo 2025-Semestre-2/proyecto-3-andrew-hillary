@@ -32,7 +32,7 @@ public class Su extends ComandoEntradaTeclado{
     }
     
     private void ExtraerNombreUsuario(String comando){
-        if(ContarTamanoComando(comando) != 0){
+        if(ContarTamanoComando(comando) == 0){
             Usuario = "";
             return;
         }
@@ -42,7 +42,7 @@ public class Su extends ComandoEntradaTeclado{
     
     private void SolicitarContrasena(){
         String contrasena = "";
-        while(!contrasena.equals("")){
+        while(contrasena.equals("")){
             System.out.print("Ingrese la contraseña del usuario: ");
             contrasena = Entrada.nextLine();
             if(contrasena.equals("")){

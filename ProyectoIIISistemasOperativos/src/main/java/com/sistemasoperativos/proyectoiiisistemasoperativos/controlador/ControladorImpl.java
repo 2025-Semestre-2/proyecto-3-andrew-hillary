@@ -5,6 +5,7 @@
 package com.sistemasoperativos.proyectoiiisistemasoperativos.controlador;
 import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.cargador.CargadorSistemaArchivos;
 import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.creador.CreadorSistemaArchivos;
+import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem.users.UsersManager;
 import java.util.List;
 /**
  *
@@ -22,17 +23,17 @@ public class ControladorImpl implements Controlador {
 
     @Override
     public String Passwd(String usuario, String contrasena) throws Exception {
-        throw new Exception("Passwd: No implementado");
+        return UsersManager.Passwd(usuario, contrasena);
     }
 
     @Override
     public String UserAdd(String usuario, String nombreCompleto, String contrasena) throws Exception {
-        throw new Exception("UserAdd: No implementado");
+        return UsersManager.AddUser(usuario, nombreCompleto, contrasena);
     }
 
     @Override
     public String Su(String usuario, String contrasena) throws Exception {
-        throw new Exception("Su: No implementado");
+        return UsersManager.Su(usuario, contrasena);
     }
 
     @Override
@@ -87,7 +88,7 @@ public class ControladorImpl implements Controlador {
 
     @Override
     public String Whoami() throws Exception {
-        throw new Exception("Whoami: No implementado");
+        return UsersManager.Whoami();
     }
 
     @Override
@@ -132,7 +133,7 @@ public class ControladorImpl implements Controlador {
 
     @Override
     public String Login(String usuario, String contrasena) throws Exception {
-        return "Aceptado";
+        return UsersManager.Su(usuario, contrasena);
     }
 
     @Override
@@ -142,7 +143,8 @@ public class ControladorImpl implements Controlador {
 
     @Override
     public String CurrentUser() throws Exception {
-        return "Andrew@myFS";
+        String user = UsersManager.getCurrentUsername();
+        return user + "@myFS";
     }
 
     @Override

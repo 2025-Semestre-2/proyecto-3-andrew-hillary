@@ -7,6 +7,7 @@ package com.sistemasoperativos.proyectoiiisistemasoperativos.vista;
 import java.io.File;
 import java.util.List;
 import java.util.Scanner;
+import java.util.concurrent.TimeUnit;
 
 /**
  *
@@ -26,11 +27,12 @@ public class Consola {
         if(ruta.equals("") || !archivo.exists()){
             Comando comando = BuscarComando("aformat");
             comando.EjecutarComando(ruta);
-            return;
         }
         Comando comando = BuscarComando("loadfs");
         if(comando == null)
-            throw new Exception("\nNo se encontró el comando para iniciar sesión.");
+            throw new Exception("\nNo se encontró el comando iniciar el sistama de archivos.");
+        System.out.println("Guardando datos del sistema de archivos...\n");
+        TimeUnit.SECONDS.sleep(3);
         comando.EjecutarComando("loadfs " + ruta);
     }
     
@@ -38,7 +40,15 @@ public class Consola {
         Comando comando = BuscarComando("login");
         if(comando == null)
             throw new Exception("\nNo se encontró el comando para iniciar sesión.");
-        comando.EjecutarComando("login");
+        while(true){
+            try{
+                comando.EjecutarComando("login");
+                return;
+            }
+            catch(Exception e){
+                System.out.println(e.getMessage() + "\n");
+            }
+        }
     }
     
     public void LeerTexto() throws Exception{

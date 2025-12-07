@@ -1,5 +1,8 @@
 package com.sistemasoperativos.proyectoiiisistemasoperativos.logica.cargador;
 
+import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem.DiskConnector;
+import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem.users.UsersManager;
+
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
@@ -33,6 +36,7 @@ public class CargadorSistemaArchivos {
     public String CargarSistemaArchivos(String ruta) throws Exception{
         LoadFromFile(ruta);
         CopiarDatos();
+        DiskConnector.CreateDisk(ruta, BloqueArranque.getTamanoBloque(), BloqueArranque.getCantidadBloques());
         return "";
     }
     
@@ -52,6 +56,7 @@ public class CargadorSistemaArchivos {
     
     private void CopiarDatosBloqueUsuarios(){
         int puntero = BloqueArranque.getPunteroUsuarios();
+        UsersManager.setPointer(puntero);
         int cantidadUsuarios = BloqueArranque.getCantidadUsuarios();
         int tamanoUsuarios = BloqueArranque.getTamanoUsuarios();
         Usuarios = new byte[cantidadUsuarios * tamanoUsuarios];

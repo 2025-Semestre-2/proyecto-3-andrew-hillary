@@ -58,7 +58,7 @@ public class UserAdd extends ComandoEntradaTeclado{
     
     private void SolicitarContrasena(){
         String contrasena = "";
-        while(!contrasena.equals("")){
+        while(contrasena.equals("")){
             System.out.print("Ingrese la contraseña del usuario: ");
             contrasena = Entrada.nextLine();
             if(!contrasena.matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9]).{6,}$")){
