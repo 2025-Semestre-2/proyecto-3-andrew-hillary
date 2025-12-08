@@ -73,9 +73,10 @@ public class ControladorImpl implements Controlador {
     }
 
     @Override
-    public String Chown(String usuario, String nombreArchivoDirectorio, boolean esRecursivo) throws Exception {
-        throw new Exception("Chown: No implementado");
+    public String Chown(String usuario, String nombre, boolean recursivo) throws Exception {
+        return FileControlBlockManager.Chown(usuario, nombre, recursivo);
     }
+
 
     @Override
     public String Chmod(String nombreArchivoDirectorio, int permisosUsuario, int permisosGrupo) throws Exception {

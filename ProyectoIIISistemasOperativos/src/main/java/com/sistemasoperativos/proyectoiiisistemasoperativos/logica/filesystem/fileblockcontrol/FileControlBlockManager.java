@@ -264,4 +264,64 @@ public class FileControlBlockManager {
         byte[] data = DataBlocksManager.ReadData(pointers[0]);
         return new String(data, "UTF-8").replace("\u0000", "");
     }
+
+    public static String Chown(String nuevoUsuario, String nombre, boolean recursivo) throws Exception {
+
+        if (!UsersManager.getCurrentUser().getUserName().equals("root")) {
+            throw new Exception("Solo el usuario root puede ejecutar chown.");
+        }
+
+        boolean existe = UsersManager.getUsers()
+                .stream()
+                .anyMatch(u -> u.getUserName().equals(nuevoUsuario));
+
+        if (!existe)
+            throw new Exception("El usuario '" + nuevoUsuario + "' no existe.");
+
+        if (nombre.endsWith("/"))
+            nombre = nombre.replaceAll("/+$", "");
+
+        Inode objetivo = null;
+        int[] direcciones = CurrentDir.getDirectBlocks();
+
+        for (int ptr : direcciones) {
+            if (ptr == -1) continue;
+
+            Inode hijo = DirTable.get(ptr);
+            if (hijo != null && hijo.getName().equals(nombre)) {
+                objetivo = hijo;
+                break;
+            }
+        }
+
+        if (objetivo == null)
+            throw new Exception("El archivo/directorio '" + nombre + "' no existe en este directorio.");
+
+        aplicarChownInterno(objetivo, nuevoUsuario, recursivo);
+
+        return "Propietario cambiado a '" + nuevoUsuario + "' en '" + nombre + "'";
+    }
+
+
+    private static void aplicarChownInterno(Inode nodo, String nuevoUsuario, boolean recursivo) throws Exception {
+
+        nodo.setOwner(nuevoUsuario);
+
+        byte[] data = nodo.serialize();
+        DiskConnector.WriteBlock(nodo.getPointer(), data);
+
+        if (!nodo.isIsDirectory() || !recursivo)
+            return;
+
+        for (int ptr : nodo.getDirectBlocks()) {
+            if (ptr == -1) continue;
+
+            Inode hijo = DirTable.get(ptr);
+            if (hijo != null)
+                aplicarChownInterno(hijo, nuevoUsuario, true);
+        }
+    }
+
+
+
 }

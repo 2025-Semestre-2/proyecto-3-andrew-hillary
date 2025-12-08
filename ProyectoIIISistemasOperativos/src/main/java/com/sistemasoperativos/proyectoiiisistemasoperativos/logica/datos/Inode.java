@@ -27,6 +27,8 @@ public class Inode {
     private int IndirectBlock;
     private int DoubleIndirectBlock;
     private int Father;
+    private int pointer;
+
 
     public Inode(int id, String name, String owner, String group, int permissions, boolean isDirectory) {
         this.ID = id;
@@ -206,5 +208,16 @@ public class Inode {
         return Father;
     }
 
-    
+    public void setOwner(String owner) {
+        this.Owner = owner;
+    }
+
+    public int getPointer() {
+        return this.pointer;
+    }
+
+    public void setPointer(int ptr) {
+        this.pointer = ptr;
+    }
+
 }
