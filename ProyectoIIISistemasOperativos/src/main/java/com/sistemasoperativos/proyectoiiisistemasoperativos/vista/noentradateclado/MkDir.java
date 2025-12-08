@@ -6,6 +6,7 @@ package com.sistemasoperativos.proyectoiiisistemasoperativos.vista.noentradatecl
 
 import com.sistemasoperativos.proyectoiiisistemasoperativos.controlador.Controlador;
 import com.sistemasoperativos.proyectoiiisistemasoperativos.vista.ComandoPadre;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -13,7 +14,7 @@ import java.util.List;
  * @author andre
  */
 public class MkDir extends ComandoPadre{
-    private List<String> Carpetas;
+    private List<String> Carpetas = new ArrayList<>();
     
     public MkDir(String comando, Controlador controlador){
         super(comando, controlador);
@@ -24,6 +25,7 @@ public class MkDir extends ComandoPadre{
         if(ContarTamanoComando(comando) <= 0){
             throw new Exception("MkDir esperaba 1 o más argumentos, en cambio recibió " + ContarTamanoComando(comando) + " argumentos.");
         }
+        ExtraerNombres(comando);
         String respuesta = ControladorAsignado.MkDir(Carpetas);
         System.out.println(respuesta);
     }

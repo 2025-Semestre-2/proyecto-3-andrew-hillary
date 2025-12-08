@@ -35,7 +35,7 @@ public class LS extends ComandoPadre {
             EsRecursivo = false;
             return;
         }
-        if(!parametros.get(0).toLowerCase().equals("-r")){
+        if(parametros.get(0).toLowerCase().equals("-r")){
             EsRecursivo = true;
             return;
         }

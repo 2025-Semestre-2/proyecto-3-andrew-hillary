@@ -58,7 +58,7 @@ public class FileControlBlockManager {
     }
     
     public static String LS(boolean isRecursive){
-        if(isRecursive)
+        if(!isRecursive)
             return LSNotRecursive();
         return LSRecursive(CurrentDir, 0);
     }
@@ -85,8 +85,8 @@ public class FileControlBlockManager {
                 continue;
             message += "\t".repeat(tabs);
             Inode subNode = DirTable.get(pointer);
-            message += subNode.getName();
-            LSRecursive(subNode, tabs + 1);
+            message += subNode.getName() + "\n";
+            message += LSRecursive(subNode, tabs + 1);
         }
         return message;
     }
@@ -119,6 +119,8 @@ public class FileControlBlockManager {
         byte[] nodeSerialized = node.serialize();
         DiskConnector.WriteBlock(pointer, nodeSerialized);
         NextID++;
+        DirTable.put(pointer, node);
+        DirList.add(node);
         return "Se ha creado " + name + "\n";
     }
     
