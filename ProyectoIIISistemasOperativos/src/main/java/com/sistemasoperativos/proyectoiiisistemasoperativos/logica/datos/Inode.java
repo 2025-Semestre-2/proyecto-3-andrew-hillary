@@ -151,6 +151,39 @@ public class Inode {
         }
         return false;
     }
+    
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("=== INODE =========================\n");
+        sb.append("ID:               ").append(ID).append("\n");
+        sb.append("Nombre:           ").append(Name).append("\n");
+        sb.append("Tipo:             ").append(IsDirectory ? "Directorio" : "Archivo").append("\n");
+        sb.append("Tamaño:           ").append(Size).append(" bytes\n\n");
+
+        sb.append("Propietario:      ").append(Owner).append("\n");
+        sb.append("Grupo:            ").append(Group).append("\n");
+        sb.append("Permisos:         ").append(Permissions).append("\n\n");
+
+        sb.append("Creado:           ").append(CreatedAt).append("\n");
+        sb.append("Modificado:       ").append(ModifiedAt).append("\n\n");
+
+        sb.append("Padre:            ").append(Father).append("\n");
+        sb.append("Pointer (FS):     ").append(pointer).append("\n\n");
+
+        sb.append("Bloques directos:\n");
+        for (int i = 0; i < DirectBlocks.length; i++) {
+            sb.append("   [").append(i).append("] = ").append(DirectBlocks[i]).append("\n");
+        }
+
+        sb.append("\nBloque indirecto:         ").append(IndirectBlock).append("\n");
+        sb.append("Bloque doble indirecto:   ").append(DoubleIndirectBlock).append("\n");
+        sb.append("Ubicacion:        ");
+
+        return sb.toString();
+    }
+
 
     public void setFather(int father) {
         this.Father = father;

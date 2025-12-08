@@ -177,7 +177,7 @@ public class ControladorImpl implements Controlador {
 
     @Override
     public String ViewFCB(String nombreArchivo) throws Exception {
-        throw new Exception("ViewFCB: No implementado");
+        return FileControlBlockManager.ViewFCB(nombreArchivo);
     }
 
     @Override
