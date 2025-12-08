@@ -269,4 +269,9 @@ public class Inode {
         this.pointer = ptr;
     }
 
+    public void setName(String Name) {
+        this.Name = Name;
+    }
+
+    
 }

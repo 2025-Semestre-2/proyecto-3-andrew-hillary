@@ -60,7 +60,7 @@ public class ControladorImpl implements Controlador {
 
     @Override
     public String MV(String archivoDirectorioSeleccionado, String archivoDirectorioDestino) throws Exception {
-        throw new Exception("MV: No implementado");
+        return FileControlBlockManager.MV(archivoDirectorioSeleccionado, archivoDirectorioDestino);
     }
 
     @Override

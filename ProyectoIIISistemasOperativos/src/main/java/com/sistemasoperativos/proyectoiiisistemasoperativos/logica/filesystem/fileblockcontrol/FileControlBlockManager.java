@@ -5,6 +5,7 @@
 package com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem.fileblockcontrol;
 
 import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.datos.Inode;
+import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.datos.User;
 import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem.DiskConnector;
 import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem.FreeSpaceManager;
 import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem.datablocks.DataBlocksManager;
@@ -40,6 +41,8 @@ public class FileControlBlockManager {
     }
     
     public static String CD(String to) throws Exception{
+        if(!canRead(UsersManager.getCurrentUser(), CurrentDir))
+            throw new Exception("No tiene los permisos suficientes");
         if(to.equals("../")){
             int pointerFather = CurrentDir.getFather();
             if(pointerFather == -1)
@@ -104,6 +107,8 @@ public class FileControlBlockManager {
     }
     
     public static String MkDir(List<String> names) throws Exception{
+        if(!canWrite(UsersManager.getCurrentUser(), CurrentDir))
+            throw new Exception("No tiene los permisos suficientes");
         String message = "";
         int pointerFather = CalculatePointerFather();
         for(String name: names){
@@ -229,6 +234,8 @@ public class FileControlBlockManager {
     }
 
     public static String Touch(String name) throws Exception {
+        if(!canWrite(UsersManager.getCurrentUser(), CurrentDir))
+            throw new Exception("No tiene los permisos suficientes");
         if (VerifyName(name))
             throw new Exception("El archivo '" + name + "' ya existe en este directorio.");
         Inode file = new Inode(
@@ -255,6 +262,8 @@ public class FileControlBlockManager {
     }
 
     public static String Cat(String name) throws Exception{
+        if(!canRead(UsersManager.getCurrentUser(), CurrentDir))
+            throw new Exception("No tiene los permisos suficientes");
         int[] pointers = CurrentDir.getDirectBlocks();
         Inode node = null;
         for(int index = 0; index < pointers.length; index++){
@@ -346,6 +355,8 @@ public class FileControlBlockManager {
 
     
     public static String SaveFile(String nombreArchivo, String contenido) throws Exception{
+        if(!canWrite(UsersManager.getCurrentUser(), CurrentDir))
+            throw new Exception("No tiene los permisos suficientes");
         int[] pointers = CurrentDir.getDirectBlocks();
         Inode node = null;
         int pointerStorage = 0;
@@ -392,6 +403,8 @@ public class FileControlBlockManager {
     }
     
     public static String ViewFCB(String name) throws Exception{
+        if(!canRead(UsersManager.getCurrentUser(), CurrentDir))
+            throw new Exception("No tiene los permisos suficientes");
         int[] punteros = CurrentDir.getDirectBlocks();
         for(int indice = 0; indice < punteros.length; indice++){
             int puntero = punteros[indice];
@@ -410,6 +423,133 @@ public class FileControlBlockManager {
                 
         }
         throw new Exception("No se encontró el archivo");
+    }
+    
+    public static String RM(String nombreArchivoDirectorio, boolean esRecursivo) throws Exception{
+        if(!canWrite(UsersManager.getCurrentUser(), CurrentDir))
+            throw new Exception("No tiene los permisos suficientes");
+        int[] punteros = CurrentDir.getDirectBlocks();
+        byte[] whiteBlock = new byte[256];
+        for(int indice = 0; indice < punteros.length; indice++){
+            int puntero = punteros[indice];
+            if(puntero == -1)
+                continue;
+            Inode nodo = DirTable.get(puntero);
+            if(nodo.getName().equals(nombreArchivoDirectorio)){
+                if(esRecursivo){
+                    RMRecursive(nodo, whiteBlock);
+                    byte[] serializado = nodo.serialize();
+                    DiskConnector.WriteBlock(Pointer, serializado);
+                }
+                else{
+                    RMNotRecursive(puntero, whiteBlock);
+                    punteros[indice] = -1;
+                    int punteroActual = CalculatePointerFather();
+                    byte[] actualSerializado = CurrentDir.serialize();
+                    DiskConnector.WriteBlock(punteroActual, actualSerializado);
+                }
+                return "Se ha eliminado el recurso";
+            }
+                
+        }
+        throw new Exception("No se encontró el archivo");
+    }
+    
+    private static void RMRecursive(Inode node, byte[] whiteBlock) throws Exception{
+        int[] directBlocks = node.getDirectBlocks();
+        for(int index = 0; index < directBlocks.length; index++){
+            int pointer = directBlocks[index];
+            if(pointer == -1)
+                continue;
+            Inode nodeAux = DirTable.get(pointer);
+            RMRecursive(nodeAux, whiteBlock);
+        }
+        for(int index = 0; index < directBlocks.length; index++){
+            int pointer = directBlocks[index];
+            if(pointer == -1)
+                continue;
+            DiskConnector.WriteBlock(pointer, whiteBlock);
+        }
+        for(int index = 0; index < directBlocks.length; index++)
+            directBlocks[index] = -1;
+    }
+    
+    private static void RMNotRecursive(int pointer, byte[] whiteBlock) throws Exception{
+        DiskConnector.WriteBlock(pointer, whiteBlock);
+    }
+    
+    public static boolean canRead(User user, Inode inode) {
+        if (!user.getUserName().equals(inode.getOwner())) return false;
+        return (inode.getPermissions() & 4) != 0;
+    }
+
+    public static boolean canWrite(User user, Inode inode) {
+        if (!user.getUserName().equals(inode.getOwner())) return false;
+        return (inode.getPermissions() & 2) != 0;
+    }
+
+    public static boolean canExecute(User user, Inode inode) {
+        if (!user.getUserName().equals(inode.getOwner())) return false;
+        return (inode.getPermissions() & 1) != 0;
+    }
+    
+    public static String MV(String archivo, String destino) throws Exception{
+        if(!VerifyName(archivo))
+            throw new Exception("No existe el archivo a mover");
+        int punteroArch = 0;
+        Inode archivoInode = null;
+        int[] punteros = CurrentDir.getDirectBlocks();
+        for(int indice = 0; indice < punteros.length; indice++){
+            int puntero = punteros[indice];
+            if(puntero == -1)
+                continue;
+            Inode nodo = DirTable.get(puntero);
+            if(nodo.getName().equals(archivo)){
+                archivoInode = nodo;
+                punteroArch = puntero;
+                punteros[indice] = -1;
+                break;
+            }
+        }
+        if(destino.equals("../")){
+            int punteroPadre = CurrentDir.getFather();
+            Inode nodo = DirTable.get(punteroPadre);
+            nodo.AddDirectBlock(punteroArch);
+            byte[] serializado = nodo.serialize();
+            archivoInode.setFather(punteroPadre);
+            DiskConnector.WriteBlock(punteroPadre, serializado);
+            byte[] serializadoArchivo = archivoInode.serialize();
+            DiskConnector.WriteBlock(punteroArch, serializadoArchivo);
+            return "Se movió el archivo al padre";
+        }
+        else if(VerifyName(destino)){
+            int punteroDestino = 0;
+            Inode carpetaDestino = null;
+            for(int indice = 0; indice < punteros.length; indice++){
+                int puntero = punteros[indice];
+                if(puntero == -1)
+                    continue;
+                Inode nodo = DirTable.get(puntero);
+                if(nodo.getName().equals(destino)){
+                    carpetaDestino = nodo;
+                    punteroDestino = puntero;
+                    break;
+                }
+            }
+            carpetaDestino.AddDirectBlock(punteroArch);
+            archivoInode.setFather(punteroDestino);
+            byte[] carpetaDestinoSerializada = carpetaDestino.serialize();
+            DiskConnector.WriteBlock(punteroDestino, carpetaDestinoSerializada);
+            byte[] archivoSerializado = archivoInode.serialize();
+            DiskConnector.WriteBlock(punteroDestino, archivoSerializado);
+            return "Se ha movido al archivo a otra carpeta";
+        }
+        else{
+            archivoInode.setName(destino);
+            byte[] serializado = archivoInode.serialize();
+            DiskConnector.WriteBlock(punteroArch, serializado);
+            return "Se renombró el archivo";
+        }
     }
 
     public static String Chgrp(String nuevoGrupo, String nombre, boolean recursivo) throws Exception {
