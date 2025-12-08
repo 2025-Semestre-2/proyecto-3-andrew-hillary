@@ -81,8 +81,15 @@ public class ControladorImpl implements Controlador {
 
     @Override
     public String Chmod(String nombreArchivoDirectorio, int permisosUsuario, int permisosGrupo) throws Exception {
-        throw new Exception("Chmod: No implementado");
+
+        if (permisosUsuario < 0 || permisosUsuario > 7 ||
+            permisosGrupo < 0 || permisosGrupo > 7)
+            throw new Exception("Los permisos deben ser números entre 0 y 7.");
+
+        String permisos = "" + permisosUsuario + permisosGrupo;
+        return FileControlBlockManager.Chmod(permisos, nombreArchivoDirectorio);
     }
+
 
     @Override
     public String OpenFile(String nombre) throws Exception {

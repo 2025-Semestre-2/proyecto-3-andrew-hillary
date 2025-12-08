@@ -193,6 +193,9 @@ public class Inode {
         this.Group = group;
     }
 
+    public void setPermissions(int permissions) {
+        this.Permissions = permissions;
+    }
 
     public int getID() {
         return ID;

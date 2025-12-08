@@ -474,6 +474,46 @@ public class FileControlBlockManager {
         }
     }
 
+    public static String Chmod(String permisos, String nombre) throws Exception {
+
+        if (!permisos.matches("[0-7]{2}"))
+            throw new Exception("Formato inválido. Use dos dígitos entre 0 y 7. Ej: 75");
+
+        int nuevosPermisos = Integer.parseInt(permisos);
+
+        Inode objetivo = null;
+        int pointerStorage = 0;
+
+        // Buscar archivo en el directorio actual
+        for (int ptr : CurrentDir.getDirectBlocks()) {
+            if (ptr == -1) continue;
+
+            Inode hijo = DirTable.get(ptr);
+            if (hijo != null && hijo.getName().equals(nombre)) {
+                objetivo = hijo;
+                pointerStorage = ptr;
+                break;
+            }
+        }
+
+        if (objetivo == null)
+            throw new Exception("El archivo/directorio '" + nombre + "' no existe en este directorio.");
+
+        aplicarChmodInterno(objetivo, nuevosPermisos, pointerStorage);
+
+        return "Permisos cambiados a '" + permisos + "' en '" + nombre + "'";
+    }
+
+    private static void aplicarChmodInterno(Inode nodo, int permisos, int pointerStorage) throws Exception {
+
+        nodo.setPermissions(permisos);
+
+        byte[] data = nodo.serialize();
+
+        DiskConnector.WriteBlock(pointerStorage, data);
+    }
+
+
 
 
 }
