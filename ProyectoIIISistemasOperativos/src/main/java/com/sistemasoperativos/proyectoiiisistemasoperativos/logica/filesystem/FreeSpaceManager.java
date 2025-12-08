@@ -4,6 +4,7 @@
  */
 package com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem;
 
+import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem.datablocks.DataBlocksManager;
 import java.io.IOException;
 import java.util.Arrays;
 /**
@@ -37,6 +38,7 @@ public class FreeSpaceManager {
         this.bitmapStartBlock = bitmapStartBlock;
         this.blocksBitmapOccupies = blocksBitmapOccupies;
         this.bitmap = new byte[totalBlocks]; // 0 = libre por defecto
+        DataBlocksManager.setSpaceManager(this);
     }
 
     /**

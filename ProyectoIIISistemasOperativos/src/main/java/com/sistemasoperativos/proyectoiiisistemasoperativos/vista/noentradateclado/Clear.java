@@ -23,18 +23,8 @@ public class Clear extends ComandoPadre {
         if(ContarTamanoComando(comando) != 0){
             throw new Exception("Clear esperaba 0 argumentos, en cambio recibió " + ContarTamanoComando(comando) + " argumentos.");
         }
-        try {
-            String os = System.getProperty("os.name").toLowerCase();
-            if (os.contains("win")) {
-                new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
-            } else {
-                new ProcessBuilder("clear").inheritIO().start().waitFor();
-            }
-
-        } catch (IOException | InterruptedException e) {
-            for (int i = 0; i < 40; i++) {
-                System.out.println();
-            }
+        for (int i = 0; i < 200; i++) {
+            System.out.println();
         }
     }
     

@@ -47,48 +47,43 @@ public class Edit extends ComandoPadre {
      * - Ctrl+X → salir y retornar string
      */
     private String EditarArchivo(String contenido) throws Exception {
-
         StringBuilder buffer = new StringBuilder();
 
         System.out.println("=== EDITOR DE TEXTO ===");
         System.out.println("Archivo: " + NombreArchivo);
-        System.out.println("Guardar: Ctrl+S   |   Salir: Ctrl+X");
+        System.out.println("Comandos:");
+        System.out.println("  :w    → guardar");
+        System.out.println("  :q    → salir (guardar y salir)");
+        System.out.println("  :x    → salir sin guardar");
         System.out.println("-------------------------------------");
 
-        // Mostrar contenido actual
         if (contenido != null && !contenido.isEmpty()) {
             System.out.println(contenido);
             buffer.append(contenido);
         }
 
+        java.io.BufferedReader reader =
+                new java.io.BufferedReader(new java.io.InputStreamReader(System.in));
+
         while (true) {
-            int c = System.in.read();
+            String linea = reader.readLine();
 
-            if (c == -1) continue;
+            if (linea == null) continue;
 
-            if (c == 19) { // Ctrl+S
-                System.out.println("\n[Guardado temporal]\n");
+            if (linea.equals(":w")) {
+                System.out.println("[Guardado temporal]");
             }
-
-            else if (c == 24) { // Ctrl+X
-                System.out.println("\n[Editor cerrado]");
+            else if (linea.equals(":q")) {
+                System.out.println("[Guardado y salida]");
                 return buffer.toString();
             }
-
+            else if (linea.equals(":x")) {
+                System.out.println("[Salida sin guardar]");
+                return contenido; // original
+            }
             else {
-                // Caracter imprimible
-                if (c >= 32 && c <= 126) {
-                    System.out.print((char) c);
-                    buffer.append((char) c);
-                }
-
-                // Enter
-                else if (c == '\n' || c == '\r') {
-                    System.out.println();
-                    buffer.append('\n');
-                }
+                buffer.append(linea).append("\n");
             }
         }
     }
-    
 }

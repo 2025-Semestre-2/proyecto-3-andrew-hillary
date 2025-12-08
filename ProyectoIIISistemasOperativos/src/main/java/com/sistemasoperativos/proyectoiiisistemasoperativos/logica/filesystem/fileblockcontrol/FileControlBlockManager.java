@@ -6,6 +6,7 @@ package com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem.f
 
 import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.datos.Inode;
 import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem.DiskConnector;
+import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem.datablocks.DataBlocksManager;
 import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem.users.UsersManager;
 import java.util.HashMap;
 import java.util.List;
@@ -217,49 +218,50 @@ public class FileControlBlockManager {
     }
 
     public static String Touch(String name) throws Exception {
-
-        //Validar nombre repetido
         if (VerifyName(name))
             throw new Exception("El archivo '" + name + "' ya existe en este directorio.");
-
-        //Crear inode del archivo
         Inode file = new Inode(
                 NextID,
                 name,
                 UsersManager.getCurrentUser().getUserName(),
                 "",
-                6,          // permisos
-                false       // NO es directorio
+                6,
+                false
         );
-
-        //Obtener puntero del directorio padre
         int pointerFather = CalculatePointerFather();
         file.setFather(pointerFather);
-
-        //Buscar espacio libre para el nuevo inode
         int pointer = FindSpace();
-
-        //Insertarlo en el directorio actual
         if (!CurrentDir.AddDirectBlock(pointer))
             throw new Exception("No hay espacio en los punteros directos del directorio.");
-
-        //Guardarlo en disco
         byte[] fileSerialized = file.serialize();
         DiskConnector.WriteBlock(pointer, fileSerialized);
-
-        //Registrar en la tabla global
         DirTable.put(pointer, file);
-
-        //Escribir el directorio actualizado al disco
+        DirList.add(file);
         byte[] dirSerialized = CurrentDir.serialize();
         DiskConnector.WriteBlock(pointerFather, dirSerialized);
-
-        //Actualizar NextID
         NextID++;
-
         return "Archivo '" + name + "' creado.";
     }
 
-    
-    
+    public static String Cat(String name) throws Exception{
+        int[] pointers = CurrentDir.getDirectBlocks();
+        Inode node = null;
+        for(int index = 0; index < pointers.length; index++){
+            int pointer = pointers[index];
+            if(pointer == -1)
+                continue;
+            node = DirTable.get(pointer);
+            if(node.getName().equals(name))
+                break;
+        }
+        if(node == null)
+            throw new Exception("No existe el archivo");
+        if(node.isIsDirectory())
+            throw new Exception("No se puede usar cat con un directorio");
+        pointers = node.getDirectBlocks();
+        if(pointers[0] == -1)
+            return "";
+        byte[] data = DataBlocksManager.ReadData(pointers[0]);
+        return new String(data, "UTF-8").replace("\u0000", "");
+    }
 }

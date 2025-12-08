@@ -27,6 +27,8 @@ public class Consola {
         if(ruta.equals("") || !archivo.exists()){
             Comando comando = BuscarComando("aformat");
             comando.EjecutarComando(ruta);
+            if(ruta.equals(""))
+                ruta = "miDiscoDuro.fs";
         }
         Comando comando = BuscarComando("loadfs");
         if(comando == null)

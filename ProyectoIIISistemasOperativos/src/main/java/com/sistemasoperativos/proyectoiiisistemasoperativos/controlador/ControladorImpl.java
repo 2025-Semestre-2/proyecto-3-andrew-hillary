@@ -69,7 +69,7 @@ public class ControladorImpl implements Controlador {
 
     @Override
     public String Cat(String nombreArchivo) throws Exception {
-        throw new Exception("Cat: No implementado");
+        return FileControlBlockManager.Cat(nombreArchivo);
     }
 
     @Override

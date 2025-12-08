@@ -4,6 +4,8 @@
  */
 package com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem;
 
+import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem.datablocks.DataBlocksManager;
+
 /**
  *
  * @author andrewdeni
@@ -13,6 +15,7 @@ public class DiskConnector {
     
     public static void CreateDisk(String path, int blockSize, int totalBlocks) throws Exception{
         Storage = new Disk(path, blockSize, totalBlocks);
+        DataBlocksManager.setStorage(Storage);
     }
     
     public static void WriteBlock(int blockNumber, byte[] data) throws Exception{
