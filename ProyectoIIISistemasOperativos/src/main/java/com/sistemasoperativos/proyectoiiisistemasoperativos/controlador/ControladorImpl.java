@@ -5,6 +5,7 @@
 package com.sistemasoperativos.proyectoiiisistemasoperativos.controlador;
 import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.cargador.CargadorSistemaArchivos;
 import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.creador.CreadorSistemaArchivos;
+import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem.groups.GroupsManager;
 import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem.users.UsersManager;
 import java.util.List;
 /**
@@ -83,7 +84,7 @@ public class ControladorImpl implements Controlador {
 
     @Override
     public String GroupAdd(String nombreGrupo) throws Exception {
-        throw new Exception("GroupAdd: No implementado");
+        return GroupsManager.GroupAdd(nombreGrupo);
     }
 
     @Override

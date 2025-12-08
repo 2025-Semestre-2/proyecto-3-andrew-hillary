@@ -1,6 +1,7 @@
 package com.sistemasoperativos.proyectoiiisistemasoperativos.logica.cargador;
 
 import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem.DiskConnector;
+import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem.groups.GroupsManager;
 import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem.users.UsersManager;
 
 /*
@@ -69,6 +70,7 @@ public class CargadorSistemaArchivos {
     
     private void CopiarDatosBloqueGrupo() {
         int puntero = BloqueArranque.getPunteroGrupos();
+        GroupsManager.setPointer(puntero);
         int cantidadGrupos = BloqueArranque.getCantidadGrupos();
         int tamanoGrupos = BloqueArranque.getTamanoGrupo();
         Grupos = new byte[cantidadGrupos * tamanoGrupos];

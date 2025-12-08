@@ -63,6 +63,17 @@ public class Disk {
 
         return buffer;
     }
+    
+    public byte[] readBlock(int blockNumber, int sizeBlock) throws IOException {
+        if (blockNumber < 0 || blockNumber >= totalBlocks)
+            throw new IllegalArgumentException("Bloque fuera de rango.");
+
+        archivoFS.seek(blockNumber);
+        byte[] buffer = new byte[sizeBlock];
+        archivoFS.readFully(buffer);
+
+        return buffer;
+    }
 
     public void flush() throws IOException {
         archivoFS.getFD().sync();

@@ -5,6 +5,7 @@
 package com.sistemasoperativos.proyectoiiisistemasoperativos.logica.cargador;
 
 import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.datos.Group;
+import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem.groups.GroupsManager;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -46,6 +47,7 @@ public class CargadorBloqueGrupos {
             Group g = Group.deserialize(grupoBytes);
             Grupos.add(g);
         }
+        GroupsManager.setGroups(Grupos);
     }
 
     public List<Group> getGrupos() {
