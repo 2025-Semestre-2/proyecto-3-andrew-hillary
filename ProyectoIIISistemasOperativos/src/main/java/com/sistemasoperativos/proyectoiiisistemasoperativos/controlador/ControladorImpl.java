@@ -81,45 +81,53 @@ public class ControladorImpl implements Controlador {
 
     @Override
     public String Chmod(String nombreArchivoDirectorio, int permisosUsuario, int permisosGrupo) throws Exception {
-        throw new Exception("Chmod: No implementado");
+
+        if (permisosUsuario < 0 || permisosUsuario > 7 ||
+            permisosGrupo < 0 || permisosGrupo > 7)
+            throw new Exception("Los permisos deben ser números entre 0 y 7.");
+
+        String permisos = "" + permisosUsuario + permisosGrupo;
+        return FileControlBlockManager.Chmod(permisos, nombreArchivoDirectorio);
     }
+
 
     @Override
     public String OpenFile(String nombre) throws Exception {
 
-        //Buscar el inodo dentro del directorio actual
-        Inode nodo = FileSystemUtils.buscarInodeEnDirectorio(nombre);
+        Inode nodo = FileSystemUtils.buscarInodeEnDirectorioFile(nombre);
+
         if (nodo == null)
             throw new Exception("El archivo '" + nombre + "' no existe en este directorio.");
+
         if (nodo.isIsDirectory())
             throw new Exception("No se pueden abrir directorios.");
-        //Verificar si ya está abierto
+
         int fdExistente = FileSystemState.oft.findByInode(nodo.getID());
         if (fdExistente != -1)
-            throw new Exception("El archivo ya está abierto. FD = " + fdExistente);
-        //Abrir archivo en modo lectura/escritura según proyecto
+            return "El archivo ya está abierto. FD = " + fdExistente;
+
         int fd = FileSystemState.oft.open(nodo.getID(), "rw");
 
         return "Archivo '" + nombre + "' abierto correctamente. FD = " + fd;
     }
 
 
+
     @Override
     public String CloseFile(String nombre) throws Exception {
 
-        //Buscar el inodo por nombre
-        Inode nodo = FileSystemUtils.buscarInodeEnDirectorio(nombre);
+        Inode nodo = FileSystemUtils.buscarInodeEnDirectorioFile(nombre);
 
         if (nodo == null)
             throw new Exception("El archivo '" + nombre + "' no existe.");
-        //Buscar si ese archivo está abierto
+
         int fd = FileSystemState.oft.findByInode(nodo.getID());
 
         if (fd == -1)
             throw new Exception("El archivo '" + nombre + "' no está abierto.");
 
-        //Cerrar
         FileSystemState.oft.close(fd);
+
         return "Archivo '" + nombre + "' cerrado correctamente.";
     }
 
@@ -161,9 +169,10 @@ public class ControladorImpl implements Controlador {
 
 
     @Override
-    public String Chgrp(String nombreGrupo, String nombreDirectorio, boolean esRecursivo) throws Exception {
-        throw new Exception("Chgrp: No implementado");
+    public String Chgrp(String nombreGrupo, String nombreArchivoDirectorio, boolean esRecursivo) throws Exception {
+        return FileControlBlockManager.Chgrp(nombreGrupo, nombreArchivoDirectorio, esRecursivo);
     }
+
 
     @Override
     public String LoadFileSystem(String ruta) throws Exception {

@@ -9,6 +9,8 @@ import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.datos.User;
 import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem.DiskConnector;
 import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem.datablocks.DataBlocksManager;
 import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem.users.UsersManager;
+import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem.groups.GroupsManager;
+
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
@@ -299,9 +301,8 @@ public class FileControlBlockManager {
             nombre = nombre.replaceAll("/+$", "");
 
         Inode objetivo = null;
-        int[] direcciones = CurrentDir.getDirectBlocks();
 
-        for (int ptr : direcciones) {
+        for (int ptr : CurrentDir.getDirectBlocks()) {
             if (ptr == -1) continue;
 
             Inode hijo = DirTable.get(ptr);
@@ -320,12 +321,24 @@ public class FileControlBlockManager {
     }
 
 
+
     private static void aplicarChownInterno(Inode nodo, String nuevoUsuario, boolean recursivo) throws Exception {
 
         nodo.setOwner(nuevoUsuario);
 
-        byte[] data = nodo.serialize();
-        DiskConnector.WriteBlock(nodo.getPointer(), data);
+        int pointerReal = -1;
+
+        for (Map.Entry<Integer, Inode> entry : DirTable.entrySet()) {
+            if (entry.getValue() == nodo) {
+                pointerReal = entry.getKey();
+                break;
+            }
+        }
+
+        if (pointerReal == -1)
+            throw new Exception("Error interno: no se encontró el puntero del inodo para chown.");
+
+        DiskConnector.WriteBlock(pointerReal, nodo.serialize());
 
         if (!nodo.isIsDirectory() || !recursivo)
             return;
@@ -338,6 +351,7 @@ public class FileControlBlockManager {
                 aplicarChownInterno(hijo, nuevoUsuario, true);
         }
     }
+
     
     public static String SaveFile(String nombreArchivo, String contenido) throws Exception{
         if(!canWrite(UsersManager.getCurrentUser(), CurrentDir))
@@ -536,4 +550,110 @@ public class FileControlBlockManager {
             return "Se renombró el archivo";
         }
     }
+
+    public static String Chgrp(String nuevoGrupo, String nombre, boolean recursivo) throws Exception {
+
+        if (!UsersManager.getCurrentUser().getUserName().equals("root")) {
+            throw new Exception("Solo el usuario root puede ejecutar chgrp.");
+        }
+        boolean existeGrupo = GroupsManager.getGroups()
+                .stream()
+                .anyMatch(g -> g.getGroupName().equals(nuevoGrupo));
+
+        if (!existeGrupo)
+            throw new Exception("El grupo '" + nuevoGrupo + "' no existe.");
+        if (nombre.endsWith("/"))
+            nombre = nombre.replaceAll("/+$", "");
+
+        Inode objetivo = null;
+
+        for (int ptr : CurrentDir.getDirectBlocks()) {
+            if (ptr == -1) continue;
+
+            Inode hijo = DirTable.get(ptr);
+
+            if (hijo != null && hijo.getName().equals(nombre)) {
+                objetivo = hijo;
+                break;
+            }
+        }
+
+        if (objetivo == null)
+            throw new Exception("El archivo/directorio '" + nombre + "' no existe en este directorio.");
+        aplicarChgrpInterno(objetivo, nuevoGrupo, recursivo);
+
+        return "Grupo cambiado a '" + nuevoGrupo + "' en '" + nombre + "'";
+    }
+
+    private static void aplicarChgrpInterno(Inode nodo, String nuevoGrupo, boolean recursivo) throws Exception {
+
+        nodo.setGroup(nuevoGrupo);
+
+        int pointerReal = -1;
+        for (Map.Entry<Integer, Inode> entry : DirTable.entrySet()) {
+            if (entry.getValue() == nodo) {
+                pointerReal = entry.getKey();
+                break;
+            }
+        }
+
+        if (pointerReal == -1)
+            throw new Exception("Error interno: no se encontró el puntero del inodo.");
+
+        DiskConnector.WriteBlock(pointerReal, nodo.serialize());
+
+        if (!nodo.isIsDirectory() || !recursivo)
+            return;
+
+        for (int ptr : nodo.getDirectBlocks()) {
+            if (ptr == -1) continue;
+
+            Inode hijo = DirTable.get(ptr);
+            if (hijo != null)
+                aplicarChgrpInterno(hijo, nuevoGrupo, true);
+        }
+    }
+
+    public static String Chmod(String permisos, String nombre) throws Exception {
+
+        if (!permisos.matches("[0-7]{2}"))
+            throw new Exception("Formato inválido. Use dos dígitos entre 0 y 7. Ej: 75");
+
+        int nuevosPermisos = Integer.parseInt(permisos);
+
+        Inode objetivo = null;
+        int pointerStorage = 0;
+
+        // Buscar archivo en el directorio actual
+        for (int ptr : CurrentDir.getDirectBlocks()) {
+            if (ptr == -1) continue;
+
+            Inode hijo = DirTable.get(ptr);
+            if (hijo != null && hijo.getName().equals(nombre)) {
+                objetivo = hijo;
+                pointerStorage = ptr;
+                break;
+            }
+        }
+
+        if (objetivo == null)
+            throw new Exception("El archivo/directorio '" + nombre + "' no existe en este directorio.");
+
+        aplicarChmodInterno(objetivo, nuevosPermisos, pointerStorage);
+
+        return "Permisos cambiados a '" + permisos + "' en '" + nombre + "'";
+    }
+
+    private static void aplicarChmodInterno(Inode nodo, int permisos, int pointerStorage) throws Exception {
+
+        nodo.setPermissions(permisos);
+
+        byte[] data = nodo.serialize();
+
+        DiskConnector.WriteBlock(pointerStorage, data);
+    }
+
+
+
+
 }

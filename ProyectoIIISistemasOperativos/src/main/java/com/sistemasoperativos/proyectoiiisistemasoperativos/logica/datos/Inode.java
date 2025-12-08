@@ -189,6 +189,14 @@ public class Inode {
         this.Father = father;
     }
 
+    public void setGroup(String group) {
+        this.Group = group;
+    }
+
+    public void setPermissions(int permissions) {
+        this.Permissions = permissions;
+    }
+
     public int getID() {
         return ID;
     }
