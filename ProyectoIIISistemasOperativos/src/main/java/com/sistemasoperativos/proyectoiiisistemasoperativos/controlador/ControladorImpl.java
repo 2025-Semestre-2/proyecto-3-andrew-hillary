@@ -11,6 +11,7 @@ import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem.us
 import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem.FileSystemUtils;
 import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem.FileSystemState;
 import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.datos.Inode;
+import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem.FreeSpaceManager;
 
 import java.util.List;
 /**
@@ -49,7 +50,7 @@ public class ControladorImpl implements Controlador {
 
     @Override
     public String InfoFS() throws Exception {
-        throw new Exception("InfoFS: No implementado");
+        return FreeSpaceManager.info();
     }
 
     @Override
@@ -64,7 +65,7 @@ public class ControladorImpl implements Controlador {
 
     @Override
     public String WhereIs(String nombreArchivo) throws Exception {
-        throw new Exception("WhereIs: No implementado");
+        return FileControlBlockManager.WhereIs(nombreArchivo);
     }
 
     @Override
@@ -187,7 +188,7 @@ public class ControladorImpl implements Controlador {
 
     @Override
     public String SaveFile(String nombreArchivo, String contenido) throws Exception {
-        throw new Exception("SaveFile: No implementado");
+        return FileControlBlockManager.SaveFile(nombreArchivo, contenido);
     }
 }
 

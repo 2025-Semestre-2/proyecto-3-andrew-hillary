@@ -1,6 +1,8 @@
 package com.sistemasoperativos.proyectoiiisistemasoperativos.logica.cargador;
 
 import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem.DiskConnector;
+import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem.FreeSpaceManager;
+import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem.datablocks.DataBlocksManager;
 import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem.fileblockcontrol.FileControlBlockManager;
 import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem.groups.GroupsManager;
 import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem.users.UsersManager;
@@ -48,6 +50,7 @@ public class CargadorSistemaArchivos {
         CopiarDatosBloqueGrupo();
         CopiarDatosBloqueFCB();
         CopiarDatosBloqueEspacioLibre();
+        CopiarDatosBloqueDatos();
     }
     
     private void CopiarDatosBloqueArranque(){
@@ -99,12 +102,22 @@ public class CargadorSistemaArchivos {
         int puntero = BloqueArranque.getPunteroBipmap();
         int tamanoBloque = BloqueArranque.getTamanoBloque();
         int tamanoBipmap = BloqueArranque.getTamanoBitMap();
+        FreeSpaceManager.setPointerBitMap(puntero);
+        FreeSpaceManager.setPointerFiles(BloqueArranque.getPunteroArchivos());
+        FreeSpaceManager.setBlockSize(tamanoBloque);
+        FreeSpaceManager.setTotalBlocks(BloqueArranque.getCantidadBloques());
         EspacioLibre = new byte[tamanoBipmap];
         for(int indice = 0; indice < tamanoBipmap; indice++){
             EspacioLibre[indice] = SuperBloque[indice + puntero];
         }
         BloqueEspacioLibre.Parse(EspacioLibre, tamanoBipmap, tamanoBloque);
         System.out.println("\n" + BloqueEspacioLibre.toString());
+    }
+    
+    private void CopiarDatosBloqueDatos(){
+        DataBlocksManager.setBlockSize(BloqueArranque.getTamanoBloque());
+        DataBlocksManager.setPointer(BloqueArranque.getPunteroArchivos());
+        DataBlocksManager.setStorageSize(BloqueArranque.getTamanoDisco());
     }
     
     public void LoadFromFile(String rutaArchivo) throws Exception {

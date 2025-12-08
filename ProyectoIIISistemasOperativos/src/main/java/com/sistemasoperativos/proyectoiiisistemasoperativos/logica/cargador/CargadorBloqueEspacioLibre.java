@@ -4,6 +4,8 @@
  */
 package com.sistemasoperativos.proyectoiiisistemasoperativos.logica.cargador;
 
+import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem.FreeSpaceManager;
+
 /**
  *
  * @author andre
@@ -37,6 +39,7 @@ public class CargadorBloqueEspacioLibre {
                 bitIndex++;
             }
         }
+        FreeSpaceManager.setBitmap(data);
     }
 
     @Override

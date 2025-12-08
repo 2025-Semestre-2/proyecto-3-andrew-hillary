@@ -8,6 +8,7 @@ import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.datos.Inode;
 import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem.DiskConnector;
 import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem.datablocks.DataBlocksManager;
 import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem.users.UsersManager;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -72,7 +73,10 @@ public class FileControlBlockManager {
             if(directBlocks[indice] == -1)
                 continue;
             Inode node = DirTable.get(directBlocks[indice]);
-            message += "\t" + node.getName() + "\n";
+            if(node.isIsDirectory())
+                message += "\t" + node.getName() + " - dir\n";
+            else
+                message += "\t" + node.getName() + " - arch\n";
         }
         return message;
     }
@@ -86,8 +90,12 @@ public class FileControlBlockManager {
                 continue;
             message += "\t".repeat(tabs);
             Inode subNode = DirTable.get(pointer);
-            message += subNode.getName() + "\n";
-            message += LSRecursive(subNode, tabs + 1);
+            if(node.isIsDirectory()){
+                message += subNode.getName() + " - dir\n";
+                message += LSRecursive(subNode, tabs + 1);
+            }
+            else
+                message += "\t" + node.getName() + " - arch\n";
         }
         return message;
     }
@@ -264,7 +272,7 @@ public class FileControlBlockManager {
         byte[] data = DataBlocksManager.ReadData(pointers[0]);
         return new String(data, "UTF-8").replace("\u0000", "");
     }
-
+    
     public static String Chown(String nuevoUsuario, String nombre, boolean recursivo) throws Exception {
 
         if (!UsersManager.getCurrentUser().getUserName().equals("root")) {
@@ -321,7 +329,50 @@ public class FileControlBlockManager {
                 aplicarChownInterno(hijo, nuevoUsuario, true);
         }
     }
-
-
-
+    
+    public static String SaveFile(String nombreArchivo, String contenido) throws Exception{
+        int[] pointers = CurrentDir.getDirectBlocks();
+        Inode node = null;
+        int pointerStorage = 0;
+        for(int index = 0; index < pointers.length; index++){
+            int pointer = pointers[index];
+            if(pointer == -1)
+                continue;
+            node = DirTable.get(pointer);
+            if(node.getName().equals(nombreArchivo)){
+                pointerStorage = pointer;
+                break;
+            }
+        }
+        if(node == null)
+            throw new Exception("No existe el archivo");
+        if(node.isIsDirectory())
+            throw new Exception("No se puede usar cat con un directorio");
+        byte[] bytes = contenido.getBytes(StandardCharsets.UTF_8);
+        int pointer = DataBlocksManager.SaveData(bytes);
+        node.AddDirectBlock(pointer);
+        byte[] nodeSerialized = node.serialize();
+        DiskConnector.WriteBlock(pointerStorage, nodeSerialized);
+        return "Se ha guardado el contenido del archivo";
+    }
+    
+    public static String WhereIs(String name) throws Exception{
+        Inode node = null;
+        for(Inode inode: DirList){
+            if(inode.isIsDirectory())
+                continue;
+            if(inode.getName().equals(name)){
+                node = inode;
+                break;
+            }
+        }
+        if(node == null)
+            throw new Exception("No existe el archivo");
+        String message = "";
+        while(node.getFather() != -1){
+            message = "/" + node.getName() + message;
+            node = DirTable.get(node.getFather());
+        }
+        return message;
+    }
 }

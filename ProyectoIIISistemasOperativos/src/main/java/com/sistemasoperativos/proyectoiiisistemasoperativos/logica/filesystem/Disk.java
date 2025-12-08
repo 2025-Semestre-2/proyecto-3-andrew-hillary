@@ -37,11 +37,6 @@ public class Disk {
     }
 
     public void writeBlock(int blockNumber, byte[] data) throws IOException {
-        if (blockNumber < 0 || blockNumber >= totalBlocks)
-            throw new IllegalArgumentException("Bloque fuera de rango.");
-
-        if (data.length > blockSize)
-            throw new IllegalArgumentException("El bloque excede blockSize.");
 
         archivoFS.seek(blockNumber);
 
@@ -51,13 +46,8 @@ public class Disk {
         archivoFS.write(padded);
     }
 
-    public byte[] readBlock(int blockNumber) throws IOException {
-        if (blockNumber < 0 || blockNumber >= totalBlocks)
-            throw new IllegalArgumentException("Bloque fuera de rango.");
-
-        long offset = (long) blockNumber * blockSize;
-
-        archivoFS.seek(offset);
+    public byte[] readBlock(int blockNumber) throws IOException {;
+        archivoFS.seek(blockNumber);
         byte[] buffer = new byte[blockSize];
         archivoFS.readFully(buffer);
 

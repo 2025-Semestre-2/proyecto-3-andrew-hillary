@@ -19,137 +19,127 @@ import java.util.Arrays;
  */
 public class FreeSpaceManager {
 
-    private final byte[] bitmap;           // Bitmap en memoria
-    private final int totalBlocks;         // Número total de bloques del disco
-    private final Disk disk;               // Referencia al disco virtual
-    private final int bitmapStartBlock;    // Bloque donde inicia el bitmap en el disco
-    private final int blocksBitmapOccupies;// Cuántos bloques ocupa el bitmap físico
+    private static byte[] Bitmap;
+    private static int TotalBlocks; 
+    private static int BlockSize;
+    private static int PointerBitMap;
+    private static int PointerFiles;
 
-    /**
-     * Constructor para crear un bitmap nuevo (usado en Format).
-     * @param totalBlocks
-     * @param disk
-     * @param bitmapStartBlock
-     * @param blocksBitmapOccupies
-     */
-    public FreeSpaceManager(int totalBlocks, Disk disk, int bitmapStartBlock, int blocksBitmapOccupies) {
-        this.totalBlocks = totalBlocks;
-        this.disk = disk;
-        this.bitmapStartBlock = bitmapStartBlock;
-        this.blocksBitmapOccupies = blocksBitmapOccupies;
-        this.bitmap = new byte[totalBlocks]; // 0 = libre por defecto
-        DataBlocksManager.setSpaceManager(this);
-    }
+    /** FIRST-FIT pero bit a bit */
+    public static int allocate() throws Exception {
 
-    /**
-     * Constructor para cargar un bitmap existente desde el disco.
-     * @param disk
-     * @param bitmapStartBlock
-     * @param totalBlocks
-     * @param blocksBitmapOccupies
-     * @throws java.io.IOException
-     */
-    public FreeSpaceManager(Disk disk, int bitmapStartBlock, int totalBlocks, int blocksBitmapOccupies) throws IOException {
-        this.totalBlocks = totalBlocks;
-        this.disk = disk;
-        this.bitmapStartBlock = bitmapStartBlock;
-        this.blocksBitmapOccupies = blocksBitmapOccupies;
+        for (int byteIndex = 0; byteIndex < Bitmap.length; byteIndex++) {
+            byte b = Bitmap[byteIndex];
 
-        this.bitmap = new byte[totalBlocks];
+            for (int bit = 0; bit < 8; bit++) {
 
-        loadFromDisk();
-    }
+                int blockIndex = byteIndex * 8 + bit;
 
-    /**
-     * Algoritmo FIRST-FIT: encuentra el primer bloque libre.
-     * @return 
-     * @throws java.io.IOException
-     */
-    public int allocate() throws IOException {
-        for (int i = 0; i < totalBlocks; i++) {
-            if (bitmap[i] == 0) {
-                bitmap[i] = 1; // marcar como ocupado
-                saveToDisk();  // guardar el bitmap actualizado
-                return i;
+                if (blockIndex >= TotalBlocks) break;
+
+                // Si está libre (bit = 0)
+                if ((b & (1 << bit)) == 0) {
+
+                    // Marcar bit como ocupado (ponerlo en 1)
+                    Bitmap[byteIndex] = (byte) (b | (1 << bit));
+
+                    Save();
+                    return (blockIndex * BlockSize) + PointerFiles;
+                }
             }
         }
-        return -1; // no hay bloques libres
+
+        return -1; // no hay espacio
     }
 
-    /**
-     * Libera un bloque dado.
-     * @param blockIndex
-     * @throws java.io.IOException
-     */
-    public void free(int blockIndex) throws IOException {
-        if (blockIndex < 0 || blockIndex >= totalBlocks) {
-            throw new IllegalArgumentException("Índice de bloque inválido");
+    /** Liberar un bloque */
+    public static void free(int blockIndex) throws Exception {
+        if (blockIndex < 0 || blockIndex >= TotalBlocks)
+            throw new Exception("Bloque fuera de rango");
+
+        int byteIndex = blockIndex / 8;
+        int bit = blockIndex % 8;
+
+        Bitmap[byteIndex] &= ~(1 << bit); // Poner bit en 0
+
+        Save();
+    }
+    
+    public static String info() {
+        int freeBlocks = 0;
+        int usedBlocks = 0;
+        for (int byteIndex = 0; byteIndex < Bitmap.length; byteIndex++) {
+            byte b = Bitmap[byteIndex];
+            for (int bit = 0; bit < 8; bit++) {
+                int blockIndex = byteIndex * 8 + bit;
+                if (blockIndex >= TotalBlocks) break;
+                boolean ocupado = ((b >> bit) & 1) == 1;
+                if (ocupado) usedBlocks++;
+                else freeBlocks++;
+            }
         }
-        bitmap[blockIndex] = 0;
-        saveToDisk();
+        long freeBytes = (long) freeBlocks * BlockSize;
+        long usedBytes = (long) usedBlocks * BlockSize;
+        double freeMB = freeBytes / (1024.0 * 1024.0);
+        double usedMB = usedBytes / (1024.0 * 1024.0);
+        StringBuilder sb = new StringBuilder();
+        sb.append("Total de bloques:          ").append(TotalBlocks).append("\n");
+        sb.append("Bloques libres:            ").append(freeBlocks).append("\n");
+        sb.append("Bloques ocupados:          ").append(usedBlocks).append("\n\n");
+        sb.append("Tamaño de bloque:          ").append(BlockSize).append(" bytes\n\n");
+        sb.append("Espacio libre:             ")
+                .append(freeBytes).append(" bytes (")
+                .append(String.format("%.2f", freeMB)).append(" MB)\n");
+        sb.append("Espacio ocupado:           ")
+                .append(usedBytes).append(" bytes (")
+                .append(String.format("%.2f", usedMB)).append(" MB)\n");
+        return sb.toString();
     }
 
-    /**
-     * Devuelve cuántos bloques libres hay.
-     * @return 
-     */
-    public int getFreeCount() {
-        int count = 0;
-        for (byte b : bitmap) {
-            if (b == 0) count++;
-        }
-        return count;
+    /** Guardar el bitmap en disco */
+    private static void Save() throws Exception {
+        DiskConnector.WriteBlock(PointerBitMap, Bitmap);
     }
 
-    /**
-     * Serializa el bitmap para escribirlo en el disco.
-     */
-    private byte[] serialize() {
-        return Arrays.copyOf(bitmap, bitmap.length);
+    public static byte[] getBitmap() {
+        return Bitmap;
     }
 
-    /**
-     * Guarda el bitmap completo en el disco virtual.
-     * @throws java.io.IOException
-     */
-    public void saveToDisk() throws IOException {
-        byte[] serialized = serialize();
-
-        int blockSize = disk.getBlockSize();
-        int offset = 0;
-
-        // Escribe el bitmap en múltiples bloques (si es grande)
-        for (int b = 0; b < blocksBitmapOccupies; b++) {
-            byte[] slice = new byte[blockSize];
-
-            int remaining = serialized.length - offset;
-            int length = Math.min(remaining, blockSize);
-
-            System.arraycopy(serialized, offset, slice, 0, length);
-
-            disk.writeBlock(bitmapStartBlock + b, slice);
-
-            offset += length;
-
-            if (remaining <= blockSize) break;
-        }
+    public static void setBitmap(byte[] Bitmap) {
+        FreeSpaceManager.Bitmap = Bitmap;
     }
 
-    /**
-     * Carga el bitmap desde el disco.
-     */
-    private void loadFromDisk() throws IOException {
-        int blockSize = disk.getBlockSize();
-        byte[] temp = new byte[blocksBitmapOccupies * blockSize];
-
-        int offset = 0;
-
-        for (int b = 0; b < blocksBitmapOccupies; b++) {
-            byte[] blockData = disk.readBlock(bitmapStartBlock + b);
-            System.arraycopy(blockData, 0, temp, offset, blockSize);
-            offset += blockSize;
-        }
-
-        System.arraycopy(temp, 0, bitmap, 0, totalBlocks);
+    public static int getTotalBlocks() {
+        return TotalBlocks;
     }
+
+    public static void setTotalBlocks(int TotalBlocks) {
+        FreeSpaceManager.TotalBlocks = TotalBlocks;
+    }
+
+    public static int getBlockSize() {
+        return BlockSize;
+    }
+
+    public static void setBlockSize(int BlockSize) {
+        FreeSpaceManager.BlockSize = BlockSize;
+    }
+
+    public static int getPointerBitMap() {
+        return PointerBitMap;
+    }
+
+    public static void setPointerBitMap(int PointerBitMap) {
+        FreeSpaceManager.PointerBitMap = PointerBitMap;
+    }
+
+    public static int getPointerFiles() {
+        return PointerFiles;
+    }
+
+    public static void setPointerFiles(int PointerFiles) {
+        FreeSpaceManager.PointerFiles = PointerFiles;
+    }
+
+    
 }

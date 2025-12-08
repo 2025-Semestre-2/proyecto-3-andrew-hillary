@@ -17,7 +17,6 @@ public class DataBlocksManager {
     private static int BlockSize;
     private static int StorageSize;
     private static Disk Storage; 
-    private static FreeSpaceManager SpaceManager;
     
     public static int SaveData(byte[] data) throws Exception {
         int payloadSize = BlockSize - 4;
@@ -29,7 +28,7 @@ public class DataBlocksManager {
             byte[] block = new byte[BlockSize];
             System.arraycopy(data, index, block, 4, len);
             index += len;
-            int blockPtr = SpaceManager.allocate();
+            int blockPtr = FreeSpaceManager.allocate();
             pointers.add(blockPtr);
             blocks.add(block);
         }
@@ -111,14 +110,4 @@ public class DataBlocksManager {
     public static void setStorage(Disk Storage) {
         DataBlocksManager.Storage = Storage;
     }
-
-    public static FreeSpaceManager getSpaceManager() {
-        return SpaceManager;
-    }
-
-    public static void setSpaceManager(FreeSpaceManager SpaceManager) {
-        DataBlocksManager.SpaceManager = SpaceManager;
-    }
-    
-    
 }
