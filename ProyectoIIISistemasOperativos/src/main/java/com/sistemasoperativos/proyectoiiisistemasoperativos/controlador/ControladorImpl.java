@@ -5,6 +5,7 @@
 package com.sistemasoperativos.proyectoiiisistemasoperativos.controlador;
 import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.cargador.CargadorSistemaArchivos;
 import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.creador.CreadorSistemaArchivos;
+import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem.fileblockcontrol.FileControlBlockManager;
 import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem.groups.GroupsManager;
 import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem.users.UsersManager;
 import java.util.List;
@@ -49,7 +50,7 @@ public class ControladorImpl implements Controlador {
 
     @Override
     public String PWD() throws Exception {
-        throw new Exception("PWD: No implementado");
+        return FileControlBlockManager.PWD();
     }
 
     @Override
@@ -94,7 +95,7 @@ public class ControladorImpl implements Controlador {
 
     @Override
     public String MkDir(List<String> archivos) throws Exception {
-        throw new Exception("MkDir: No implementado");
+        return FileControlBlockManager.MkDir(archivos);
     }
 
     @Override
@@ -104,12 +105,12 @@ public class ControladorImpl implements Controlador {
 
     @Override
     public String LS(boolean esRecursivo) throws Exception {
-        throw new Exception("LS: No implementado");
+        return FileControlBlockManager.LS(esRecursivo);
     }
 
     @Override
     public String CD(String directorioDestino) throws Exception {
-        throw new Exception("CD: No implementado");
+        return FileControlBlockManager.CD(directorioDestino);
     }
 
     @Override

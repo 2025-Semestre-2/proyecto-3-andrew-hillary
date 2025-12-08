@@ -21,10 +21,16 @@ public class DiskConnector {
         Storage.writeBlock(blockNumber, data);
     }
     
-    public static void ReadBlock(int blockNumber) throws Exception{
+    public static byte[] ReadBlock(int blockNumber) throws Exception{
         if(Storage == null)
             throw new Exception("No se ha creado la clase que controla el almacenamiento.");
-        Storage.readBlock(blockNumber);
+        return Storage.readBlock(blockNumber);
+    }
+    
+    public static byte[] ReadBlock(int blockNumber, int blockSize) throws Exception{
+        if(Storage == null)
+            throw new Exception("No se ha creado la clase que controla el almacenamiento.");
+        return Storage.readBlock(blockNumber, blockSize);
     }
     
     public static void CloseFileSystem() throws Exception{

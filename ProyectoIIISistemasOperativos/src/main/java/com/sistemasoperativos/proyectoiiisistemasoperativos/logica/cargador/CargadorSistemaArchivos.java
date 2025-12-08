@@ -1,6 +1,7 @@
 package com.sistemasoperativos.proyectoiiisistemasoperativos.logica.cargador;
 
 import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem.DiskConnector;
+import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem.fileblockcontrol.FileControlBlockManager;
 import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem.groups.GroupsManager;
 import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem.users.UsersManager;
 
@@ -83,13 +84,14 @@ public class CargadorSistemaArchivos {
     
     private void CopiarDatosBloqueFCB() {
         int puntero = BloqueArranque.getPunteroFCB();
+        FileControlBlockManager.setPointer(puntero);
         int cantidadFCB = BloqueArranque.getCantidadFBCs();
         int tamanoFCB = BloqueArranque.getTamanoFCB();
         ControlArchivos = new byte[cantidadFCB * tamanoFCB];
         for(int indice = 0; indice < ControlArchivos.length; indice++){
             ControlArchivos[indice] = SuperBloque[indice + puntero];
         }
-        BloqueControlArchivos.Parse(ControlArchivos, cantidadFCB, tamanoFCB);
+        BloqueControlArchivos.Parse(ControlArchivos, cantidadFCB, tamanoFCB, puntero);
         System.out.println("\n" + BloqueControlArchivos.toString());
     }
     

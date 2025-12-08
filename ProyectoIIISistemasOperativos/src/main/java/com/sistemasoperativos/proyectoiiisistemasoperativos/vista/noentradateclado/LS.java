@@ -31,6 +31,10 @@ public class LS extends ComandoPadre {
     
     private void ExtraerParametrosActuales(String comando) throws Exception{
         List<String> parametros = ExtraerParametros(comando);
+        if(parametros.isEmpty()){
+            EsRecursivo = false;
+            return;
+        }
         if(!parametros.get(0).toLowerCase().equals("-r")){
             EsRecursivo = true;
             return;

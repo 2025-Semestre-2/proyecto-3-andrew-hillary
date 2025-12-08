@@ -5,7 +5,9 @@
 package com.sistemasoperativos.proyectoiiisistemasoperativos.logica.cargador;
 
 import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.datos.Inode;
+import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem.fileblockcontrol.FileControlBlockManager;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -17,15 +19,18 @@ public class CargadorBloqueControlArchivos {
     private int CantidadBloques;
     private int TamanoBloques;
     private final List<Inode> Inodos;
-
+    private final HashMap<Integer, Inode> DirTable;
+    private final int Puntero;
     public CargadorBloqueControlArchivos() {
         Inodos = new ArrayList<>();
+        DirTable = new HashMap<>();
+        Puntero = 0;
     }
 
-    public void Parse(byte[] data, int cantidadBloques, int tamanoBloques) {
+    public void Parse(byte[] data, int cantidadBloques, int tamanoBloques, int puntero) {
         this.CantidadBloques = cantidadBloques;
         this.TamanoBloques = tamanoBloques;
-
+        DirTable.clear();
         Inodos.clear();
 
         byte[] copia = new byte[TamanoBloques];
@@ -37,7 +42,11 @@ public class CargadorBloqueControlArchivos {
                 continue;
             Inode nodo = Inode.deserialize(copia);
             Inodos.add(nodo);
-        } 
+            DirTable.put(indice + puntero, nodo);
+        }
+        FileControlBlockManager.setDirList(Inodos);
+        FileControlBlockManager.setAmountFCBs(cantidadBloques);
+        FileControlBlockManager.setDirTable(DirTable);
     }
 
     public List<Inode> getInodos() {
