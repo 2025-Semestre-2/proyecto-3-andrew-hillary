@@ -3,7 +3,10 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem;
+import java.util.HashMap;
+
 import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.datos.Inode;
+import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem.fileblockcontrol.FileControlBlockManager;
 
 
 /**
@@ -30,4 +33,23 @@ public class FileSystemUtils {
 
         return null;
     }
+
+    public static Inode buscarInodeEnDirectorioFile(String nombre) {
+
+        Inode current = FileControlBlockManager.getCurrentDir();
+        HashMap<Integer, Inode> tabla = FileControlBlockManager.getDirTable();
+
+        for (int ptr : current.getDirectBlocks()) {
+
+            if (ptr == -1) continue;
+
+            Inode hijo = tabla.get(ptr);
+
+            if (hijo != null && hijo.getName().equals(nombre))
+                return hijo;
+        }
+
+        return null;
+    }
+
 }
