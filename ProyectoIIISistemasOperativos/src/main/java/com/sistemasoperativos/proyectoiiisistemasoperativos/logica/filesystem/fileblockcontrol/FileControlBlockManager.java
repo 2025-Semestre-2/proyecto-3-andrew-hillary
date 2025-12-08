@@ -213,6 +213,51 @@ public class FileControlBlockManager {
     public static void setAmountFCBs(int AmountFCBs) {
         FileControlBlockManager.AmountFCBs = AmountFCBs;
     }
+
+    public static String Touch(String name) throws Exception {
+
+        //Validar nombre repetido
+        if (VerifyName(name))
+            throw new Exception("El archivo '" + name + "' ya existe en este directorio.");
+
+        //Crear inode del archivo
+        Inode file = new Inode(
+                NextID,
+                name,
+                UsersManager.getCurrentUser().getUserName(),
+                "",
+                6,          // permisos
+                false       // NO es directorio
+        );
+
+        //Obtener puntero del directorio padre
+        int pointerFather = CalculatePointerFather();
+        file.setFather(pointerFather);
+
+        //Buscar espacio libre para el nuevo inode
+        int pointer = FindSpace();
+
+        //Insertarlo en el directorio actual
+        if (!CurrentDir.AddDirectBlock(pointer))
+            throw new Exception("No hay espacio en los punteros directos del directorio.");
+
+        //Guardarlo en disco
+        byte[] fileSerialized = file.serialize();
+        DiskConnector.WriteBlock(pointer, fileSerialized);
+
+        //Registrar en la tabla global
+        DirTable.put(pointer, file);
+
+        //Escribir el directorio actualizado al disco
+        byte[] dirSerialized = CurrentDir.serialize();
+        DiskConnector.WriteBlock(pointerFather, dirSerialized);
+
+        //Actualizar NextID
+        NextID++;
+
+        return "Archivo '" + name + "' creado.";
+    }
+
     
     
 }

@@ -13,41 +13,22 @@ package com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem;
  * Un archivo abierto en memoria.
  * Entrada en la Open File Table del sistema operativo.
  */
+
 public class OpenFileEntry {
 
-    private final int fcbId;      // ID del FCB o INode asociado al archivo
-    private int cursor;           // posición de lectura/escritura dentro del archivo
-    private final String mode;    // modo: r, w, rw, a
-    private boolean locked;      
+    private final int inodeID;   // ID del inodo del archivo
+    private final String mode;   // modo de apertura: r, w, rw, a
 
-    public OpenFileEntry(int fcbId, String mode) {
-        this.fcbId = fcbId;
+    public OpenFileEntry(int inodeID, String mode) {
+        this.inodeID = inodeID;
         this.mode = mode;
-        this.cursor = 0;
-        this.locked = false;
     }
 
-    public int getFcbId() {
-        return fcbId;
-    }
-
-    public int getCursor() {
-        return cursor;
-    }
-
-    public void setCursor(int cursor) {
-        this.cursor = cursor;
+    public int getInodeID() {
+        return inodeID;
     }
 
     public String getMode() {
         return mode;
-    }
-
-    public boolean isLocked() {
-        return locked;
-    }
-
-    public void setLocked(boolean locked) {
-        this.locked = locked;
     }
 }

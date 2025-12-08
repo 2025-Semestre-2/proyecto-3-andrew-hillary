@@ -8,6 +8,10 @@ import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.creador.Cread
 import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem.fileblockcontrol.FileControlBlockManager;
 import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem.groups.GroupsManager;
 import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem.users.UsersManager;
+import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem.FileSystemUtils;
+import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem.FileSystemState;
+import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.datos.Inode;
+
 import java.util.List;
 /**
  *
@@ -79,9 +83,44 @@ public class ControladorImpl implements Controlador {
     }
 
     @Override
-    public String CloseFile(String nombreArchivo) throws Exception {
-        throw new Exception("CloseFile: No implementado");
+    public String OpenFile(String nombre) throws Exception {
+
+        //Buscar el inodo dentro del directorio actual
+        Inode nodo = FileSystemUtils.buscarInodeEnDirectorio(nombre);
+        if (nodo == null)
+            throw new Exception("El archivo '" + nombre + "' no existe en este directorio.");
+        if (nodo.isIsDirectory())
+            throw new Exception("No se pueden abrir directorios.");
+        //Verificar si ya está abierto
+        int fdExistente = FileSystemState.oft.findByInode(nodo.getID());
+        if (fdExistente != -1)
+            throw new Exception("El archivo ya está abierto. FD = " + fdExistente);
+        //Abrir archivo en modo lectura/escritura según proyecto
+        int fd = FileSystemState.oft.open(nodo.getID(), "rw");
+
+        return "Archivo '" + nombre + "' abierto correctamente. FD = " + fd;
     }
+
+
+    @Override
+    public String CloseFile(String nombre) throws Exception {
+
+        //Buscar el inodo por nombre
+        Inode nodo = FileSystemUtils.buscarInodeEnDirectorio(nombre);
+
+        if (nodo == null)
+            throw new Exception("El archivo '" + nombre + "' no existe.");
+        //Buscar si ese archivo está abierto
+        int fd = FileSystemState.oft.findByInode(nodo.getID());
+
+        if (fd == -1)
+            throw new Exception("El archivo '" + nombre + "' no está abierto.");
+
+        //Cerrar
+        FileSystemState.oft.close(fd);
+        return "Archivo '" + nombre + "' cerrado correctamente.";
+    }
+
 
     @Override
     public String GroupAdd(String nombreGrupo) throws Exception {
@@ -114,18 +153,14 @@ public class ControladorImpl implements Controlador {
     }
 
     @Override
-    public String Touch(String directorioDestino) throws Exception {
-        throw new Exception("Touch: No implementado");
+    public String Touch(String name) throws Exception {
+        return FileControlBlockManager.Touch(name);
     }
+
 
     @Override
     public String Chgrp(String nombreGrupo, String nombreDirectorio, boolean esRecursivo) throws Exception {
         throw new Exception("Chgrp: No implementado");
-    }
-
-    @Override
-    public String OpenFile(String directorioDestino) throws Exception {
-        throw new Exception("OpenFile: No implementado");
     }
 
     @Override
