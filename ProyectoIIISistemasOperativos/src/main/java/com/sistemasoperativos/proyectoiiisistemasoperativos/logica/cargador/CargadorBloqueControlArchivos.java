@@ -38,8 +38,16 @@ public class CargadorBloqueControlArchivos {
             for(int indiceAux = 0; indiceAux < copia.length; indiceAux++){
                 copia[indiceAux] = data[indiceAux + indice];
             }
-            if(copia[4] == 0)
+            boolean inodeVacio = true;
+            for (int i = 0; i < copia.length; i++) {
+                if (copia[i] != 0) {
+                    inodeVacio = false;
+                    break;
+                }
+            }
+            if (inodeVacio)
                 continue;
+            
             Inode nodo = Inode.deserialize(copia);
             Inodos.add(nodo);
             DirTable.put(indice + puntero, nodo);

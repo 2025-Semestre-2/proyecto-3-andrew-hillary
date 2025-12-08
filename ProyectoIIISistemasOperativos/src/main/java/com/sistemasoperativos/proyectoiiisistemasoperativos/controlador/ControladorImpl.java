@@ -152,8 +152,6 @@ public class ControladorImpl implements Controlador {
         return FileControlBlockManager.RM(nombreArchivoDirectorio, esRecursivo);
     }
 
-
-
     @Override
     public String LS(boolean esRecursivo) throws Exception {
         return FileControlBlockManager.LS(esRecursivo);
