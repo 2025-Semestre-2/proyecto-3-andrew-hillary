@@ -189,6 +189,11 @@ public class Inode {
         this.Father = father;
     }
 
+    public void setGroup(String group) {
+        this.Group = group;
+    }
+
+
     public int getID() {
         return ID;
     }

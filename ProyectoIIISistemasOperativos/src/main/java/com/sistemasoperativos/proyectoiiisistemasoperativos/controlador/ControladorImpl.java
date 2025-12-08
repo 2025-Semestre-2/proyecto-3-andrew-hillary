@@ -162,9 +162,10 @@ public class ControladorImpl implements Controlador {
 
 
     @Override
-    public String Chgrp(String nombreGrupo, String nombreDirectorio, boolean esRecursivo) throws Exception {
-        throw new Exception("Chgrp: No implementado");
+    public String Chgrp(String nombreGrupo, String nombreArchivoDirectorio, boolean esRecursivo) throws Exception {
+        return FileControlBlockManager.Chgrp(nombreGrupo, nombreArchivoDirectorio, esRecursivo);
     }
+
 
     @Override
     public String LoadFileSystem(String ruta) throws Exception {
