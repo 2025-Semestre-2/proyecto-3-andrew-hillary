@@ -78,6 +78,27 @@ public class DataBlocksManager {
         return result;
     }
 
+    public static void FreeData(int pointer) throws Exception {
+        if (pointer == -1) return;
+
+        int current = pointer;
+
+        while (current != -1) {
+            byte[] block = Storage.readBlock(current);
+
+            int next =
+                    (block[0] & 0xFF) |
+                    ((block[1] & 0xFF) << 8) |
+                    ((block[2] & 0xFF) << 16) |
+                    ((block[3] & 0xFF) << 24);
+
+            int blockIndex = (current - Pointer) / BlockSize;
+
+            FreeSpaceManager.free(blockIndex);
+
+            current = next;
+        }
+    }
 
     public static int getPointer() {
         return Pointer;

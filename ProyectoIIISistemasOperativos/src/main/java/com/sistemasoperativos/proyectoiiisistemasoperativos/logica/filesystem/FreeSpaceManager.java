@@ -5,6 +5,8 @@
 package com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem;
 
 import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem.datablocks.DataBlocksManager;
+import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem.fileblockcontrol.FileControlBlockManager;
+
 import java.io.IOException;
 import java.util.Arrays;
 /**
@@ -96,6 +98,24 @@ public class FreeSpaceManager {
         return sb.toString();
     }
 
+    public static void freeFCB(int pointer) throws Exception {
+
+        int inicioFCB = FileControlBlockManager.getPointer();
+        int blockIndex = (pointer - inicioFCB) / BlockSize;
+
+        if (blockIndex < 0 || blockIndex >= TotalBlocks)
+            throw new Exception("Bloque fuera de rango (FCB)");
+
+        int byteIndex = blockIndex / 8;
+        int bit = blockIndex % 8;
+
+        Bitmap[byteIndex] &= ~(1 << bit);
+
+        Save();
+    }
+
+
+
     /** Guardar el bitmap en disco */
     private static void Save() throws Exception {
         DiskConnector.WriteBlock(PointerBitMap, Bitmap);
@@ -140,6 +160,5 @@ public class FreeSpaceManager {
     public static void setPointerFiles(int PointerFiles) {
         FreeSpaceManager.PointerFiles = PointerFiles;
     }
-
     
 }

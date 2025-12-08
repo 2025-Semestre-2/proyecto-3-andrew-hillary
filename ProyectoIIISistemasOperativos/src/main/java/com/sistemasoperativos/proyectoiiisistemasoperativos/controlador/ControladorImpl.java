@@ -149,8 +149,10 @@ public class ControladorImpl implements Controlador {
 
     @Override
     public String RM(String nombreArchivoDirectorio, boolean esRecursivo) throws Exception {
-        throw new Exception("RM: No implementado");
+        return FileControlBlockManager.RM(nombreArchivoDirectorio, esRecursivo);
     }
+
+
 
     @Override
     public String LS(boolean esRecursivo) throws Exception {

@@ -184,6 +184,14 @@ public class Inode {
         return sb.toString();
     }
 
+    public void removeDirectBlock(int pointer) {
+        for (int i = 0; i < DirectBlocks.length; i++) {
+            if (DirectBlocks[i] == pointer) {
+                DirectBlocks[i] = -1;
+                return;
+            }
+        }
+    }
 
     public void setFather(int father) {
         this.Father = father;

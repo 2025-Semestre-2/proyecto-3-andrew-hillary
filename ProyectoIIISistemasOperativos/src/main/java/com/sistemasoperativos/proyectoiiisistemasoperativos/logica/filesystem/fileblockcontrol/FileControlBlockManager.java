@@ -6,6 +6,7 @@ package com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem.f
 
 import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.datos.Inode;
 import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem.DiskConnector;
+import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem.FreeSpaceManager;
 import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem.datablocks.DataBlocksManager;
 import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem.users.UsersManager;
 import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem.groups.GroupsManager;
@@ -513,7 +514,62 @@ public class FileControlBlockManager {
         DiskConnector.WriteBlock(pointerStorage, data);
     }
 
+    public static String RM(String nombre, boolean recursivo) throws Exception {
+
+        if (nombre.endsWith("/"))
+            nombre = nombre.replaceAll("/+$", "");
+
+        int[] directBlocks = CurrentDir.getDirectBlocks();
+        Inode objetivo = null;
+        int pointerObjetivo = -1;
+
+        for (int ptr : directBlocks) {
+            if (ptr == -1) continue;
+
+            Inode hijo = DirTable.get(ptr);
+            if (hijo != null && hijo.getName().equals(nombre)) {
+                objetivo = hijo;
+                pointerObjetivo = ptr;
+                break;
+            }
+        }
+
+        if (objetivo == null)
+            throw new Exception("El archivo/directorio '" + nombre + "' no existe.");
+
+        if (objetivo.isIsDirectory() && !recursivo)
+            throw new Exception("El directorio no está vacío o falta usar -R.");
+
+        borrarNodo(objetivo, pointerObjetivo, recursivo);
+
+        return "Se eliminó '" + nombre + "' correctamente.";
+    }
 
 
+    private static void borrarNodo(Inode nodo, int pointer, boolean recursivo) throws Exception {
+
+        if (nodo.isIsDirectory() && recursivo) {
+            for (int ptr : nodo.getDirectBlocks()) {
+                if (ptr == -1) continue;
+
+                Inode hijo = DirTable.get(ptr);
+                if (hijo != null) {
+                    borrarNodo(hijo, ptr, true);
+                }
+            }
+        }
+
+        for (int ptr : nodo.getDirectBlocks()) {
+            if (ptr != -1) {
+                DataBlocksManager.FreeData(ptr);   
+            }
+        }
+
+        CurrentDir.removeDirectBlock(pointer);
+        DiskConnector.WriteBlock(CurrentDir.getFather(), CurrentDir.serialize());
+        DirTable.remove(pointer);
+        DirList.remove(nodo);
+        FreeSpaceManager.freeFCB(pointer);
+    }
 
 }
