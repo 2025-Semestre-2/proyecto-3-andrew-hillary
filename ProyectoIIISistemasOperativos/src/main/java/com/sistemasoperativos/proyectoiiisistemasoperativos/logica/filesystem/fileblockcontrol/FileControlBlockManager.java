@@ -486,6 +486,8 @@ public class FileControlBlockManager {
         int[] punteros = CurrentDir.getDirectBlocks();
         for(int indice = 0; indice < punteros.length; indice++){
             int puntero = punteros[indice];
+            if(puntero == -1)
+                continue;
             Inode nodo = DirTable.get(puntero);
             if(nodo.getName().equals(archivo)){
                 archivoInode = nodo;
