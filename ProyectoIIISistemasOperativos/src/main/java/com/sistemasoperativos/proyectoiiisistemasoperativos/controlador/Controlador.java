@@ -66,4 +66,7 @@ public interface Controlador {
     String CurrentUser() throws Exception;
     
     String SaveFile(String nombreArchivo, String contenido) throws Exception;
+
+    String Ln(String nombreLink, String rutaDestino) throws Exception;
+
 }

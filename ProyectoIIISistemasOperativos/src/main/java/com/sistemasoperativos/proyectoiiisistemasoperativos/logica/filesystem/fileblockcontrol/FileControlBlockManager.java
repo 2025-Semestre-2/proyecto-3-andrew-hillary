@@ -431,6 +431,56 @@ public class FileControlBlockManager {
         throw new Exception("No se encontró el archivo");
     }
     
+    /* 
+    public static String RM(String nombreArchivoDirectorio, boolean esRecursivo) throws Exception{
+        if(!canWrite(UsersManager.getCurrentUser(), CurrentDir))
+            throw new Exception("No tiene los permisos suficientes");
+        int[] punteros = CurrentDir.getDirectBlocks();
+        byte[] whiteBlock = new byte[256];
+        for(int indice = 0; indice < punteros.length; indice++){
+            int puntero = punteros[indice];
+            if(puntero == -1)
+                continue;
+            Inode nodo = DirTable.get(puntero);
+            if(nodo.getName().equals(nombreArchivoDirectorio)){
+                if(esRecursivo){
+                    RMRecursive(nodo, whiteBlock);
+                    byte[] serializado = nodo.serialize();
+                    DiskConnector.WriteBlock(Pointer, serializado);
+                }
+                else{
+                    RMNotRecursive(puntero, whiteBlock);
+                    punteros[indice] = -1;
+                    int punteroActual = CalculatePointerFather();
+                    byte[] actualSerializado = CurrentDir.serialize();
+                    DiskConnector.WriteBlock(punteroActual, actualSerializado);
+                }
+                return "Se ha eliminado el recurso";
+            }
+                
+        }
+        throw new Exception("No se encontró el archivo");
+    }
+    */
+    private static void RMRecursive(Inode node, byte[] whiteBlock) throws Exception{
+        int[] directBlocks = node.getDirectBlocks();
+        for(int index = 0; index < directBlocks.length; index++){
+            int pointer = directBlocks[index];
+            if(pointer == -1)
+                continue;
+            Inode nodeAux = DirTable.get(pointer);
+            RMRecursive(nodeAux, whiteBlock);
+        }
+        for(int index = 0; index < directBlocks.length; index++){
+            int pointer = directBlocks[index];
+            if(pointer == -1)
+                continue;
+            DiskConnector.WriteBlock(pointer, whiteBlock);
+        }
+        for(int index = 0; index < directBlocks.length; index++)
+            directBlocks[index] = -1;
+    }
+    
     private static void RMNotRecursive(int pointer, byte[] whiteBlock) throws Exception{
         DiskConnector.WriteBlock(pointer, whiteBlock);
     }
@@ -669,4 +719,128 @@ public class FileControlBlockManager {
         FreeSpaceManager.freeFCB(pointer);
     }
 
+    public static String Ln(String nombreLink, String rutaDestino) throws Exception {
+
+        Inode destino = buscarPorRuta(rutaDestino);
+        if (destino == null)
+            throw new Exception("No existe el archivo destino: " + rutaDestino);
+
+        if (!canRead(UsersManager.getCurrentUser(), destino))
+            throw new Exception("No tiene permisos para enlazar el archivo destino.");
+
+        if (VerifyName(nombreLink))
+            throw new Exception("Ya existe un archivo o directorio con ese nombre en este directorio.");
+
+        Inode enlace = new Inode(
+                NextID,
+                nombreLink,
+                UsersManager.getCurrentUser().getUserName(),
+                destino.getGroup(),
+                7,              
+                false           
+        );
+
+        String contenidoLink = rutaDestino;
+        int ptrData = DataBlocksManager.SaveData(contenidoLink.getBytes(StandardCharsets.UTF_8));
+        enlace.AddDirectBlock(ptrData);
+
+        enlace.setFather(CalculatePointerFather());
+
+        // 5. Guardarlo como archivo normal (igual que touch)
+        int pointer = FindSpace();
+        CurrentDir.AddDirectBlock(pointer);
+
+        byte[] ser = enlace.serialize();
+        DiskConnector.WriteBlock(pointer, ser);
+
+        DirTable.put(pointer, enlace);
+        DirList.add(enlace);
+        NextID++;
+
+        // Actualizar directorio
+        DiskConnector.WriteBlock(enlace.getFather(), CurrentDir.serialize());
+
+        return "Enlace creado: " + nombreLink + " -> " + rutaDestino;
+    }
+
+    public static Inode buscarPorRuta(String ruta) throws Exception {
+
+        if (ruta == null || ruta.isEmpty())
+            throw new Exception("Ruta inválida");
+
+        Inode actual;
+
+        // Si empieza con "/"  ruta absoluta
+        if (ruta.startsWith("/")) {
+
+        // El usuario ve "home" como raíz
+        Inode raizVisible = null;
+
+        for (Inode nodo : DirList) {
+            if (nodo.getName().equals("home")) {
+                raizVisible = nodo;
+                break;
+            }
+        }
+
+        if (raizVisible == null)
+            throw new Exception("No se encontró /home como raíz visible del sistema.");
+
+        actual = raizVisible;
+        ruta = ruta.substring(1); 
+        }else {
+            // Ruta relativa
+            actual = CurrentDir;
+        }
+
+        if (ruta.isEmpty()) return actual;
+
+        String[] partes = ruta.split("/");
+
+        for (String p : partes) {
+
+            if (p.equals("") || p.equals(".")) continue;
+
+            if (p.equals("..")) {
+                if (actual.getFather() == -1)
+                    throw new Exception("No se puede subir más arriba de la raíz");
+                actual = DirTable.get(actual.getFather());
+                continue;
+            }
+
+            // Buscar hijo dentro del directorio actual
+            Inode hijo = null;
+
+            for (int ptr : actual.getDirectBlocks()) {
+                if (ptr == -1) continue;
+
+                Inode aux = DirTable.get(ptr);
+
+                if (aux != null && aux.getName().equals(p)) {
+                    hijo = aux;
+                    break;
+                }
+            }
+
+            if (hijo == null)
+                throw new Exception("No existe '" + p + "' en la ruta");
+
+            actual = hijo;
+        }
+
+        return actual;
+    }
+
+    private static Inode encontrarRaiz() {
+
+        for (Inode nodo : DirList) {
+            if (nodo.getFather() == -1) {
+                return nodo;
+            }
+        }
+
+        throw new RuntimeException("ERROR: No se encontró la raíz del filesystem");
+    }
+
+    
 }

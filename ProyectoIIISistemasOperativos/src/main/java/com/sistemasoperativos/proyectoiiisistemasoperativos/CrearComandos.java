@@ -23,6 +23,7 @@ import com.sistemasoperativos.proyectoiiisistemasoperativos.vista.noentradatecla
 import com.sistemasoperativos.proyectoiiisistemasoperativos.vista.noentradateclado.ViewFCB;
 import com.sistemasoperativos.proyectoiiisistemasoperativos.vista.noentradateclado.MkDir;
 import com.sistemasoperativos.proyectoiiisistemasoperativos.vista.noentradateclado.Chown;
+import com.sistemasoperativos.proyectoiiisistemasoperativos.vista.noentradateclado.Ln;
 import com.sistemasoperativos.proyectoiiisistemasoperativos.controlador.Controlador;
 import com.sistemasoperativos.proyectoiiisistemasoperativos.vista.Comando;
 import com.sistemasoperativos.proyectoiiisistemasoperativos.vista.entradateclado.AutomaticFormat;
@@ -76,6 +77,7 @@ public class CrearComandos {
         comandos.add(new ViewFCB("viewfcb", controlador));
         comandos.add(new WhereIs("whereis", controlador));
         comandos.add(new Whoami("whoami", controlador));
+        comandos.add(new Ln("ln", controlador));
         comandos.add(clear);
 
         // === Comando Edit (diferente constructor) ===

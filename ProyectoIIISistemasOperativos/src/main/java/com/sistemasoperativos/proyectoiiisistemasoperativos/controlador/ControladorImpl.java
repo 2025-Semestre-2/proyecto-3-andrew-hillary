@@ -199,5 +199,11 @@ public class ControladorImpl implements Controlador {
     public String SaveFile(String nombreArchivo, String contenido) throws Exception {
         return FileControlBlockManager.SaveFile(nombreArchivo, contenido);
     }
+
+    @Override
+    public String Ln(String nombreLink, String rutaDestino) throws Exception {
+        return FileControlBlockManager.Ln(nombreLink, rutaDestino);
+    }
+
 }
 

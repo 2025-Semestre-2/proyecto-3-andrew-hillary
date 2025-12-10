@@ -19,6 +19,7 @@ public class FileSystemUtils {
     /**
      * Busca un archivo por nombre dentro del directorio actual.
      */
+    /* 
     public static Inode buscarInodeEnDirectorio(String nombre) {
 
         if (FileSystemState.inodos == null)
@@ -33,6 +34,7 @@ public class FileSystemUtils {
 
         return null;
     }
+    */
 
     public static Inode buscarInodeEnDirectorioFile(String nombre) {
 
