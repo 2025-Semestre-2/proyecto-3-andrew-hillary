@@ -811,6 +811,16 @@ public class FileControlBlockManager {
         throw new RuntimeException("ERROR: No se encontró la raíz del filesystem");
     }
 
+    private static int getPointerOf(Inode inode) throws Exception {
+        for (Map.Entry<Integer, Inode> entry : DirTable.entrySet()) {
+            if (entry.getValue() == inode) {
+                return entry.getKey();  // puntero al inode
+            }
+        }
+        throw new Exception("Error interno: puntero del inode no encontrado");
+    }
+
+
     public static void SelectUserFolder(String name) throws Exception{
         CurrentDir = Home;
         CD(name);
