@@ -7,6 +7,7 @@ package com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem.u
 import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.datos.User;
 import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem.DiskConnector;
 import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem.fileblockcontrol.FileControlBlockManager;
+import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem.groups.GroupsManager;
 import java.util.List;
 
 /**
@@ -36,7 +37,8 @@ public class UsersManager {
                 throw new Exception("El nombre se usuario ingresado ya está siendo utilizado");
         }
         User user = new User(usuario, nombreCompleto, contrasena);
-        user.setGroupID("0");
+        GroupsManager.GroupAdd(usuario);
+        user.setGroupID(GroupsManager.GetIDByName(usuario));
         byte[] userSerialized = user.serialize();
         int sizeBlock = userSerialized.length;
         int nextIndex = Users.size();

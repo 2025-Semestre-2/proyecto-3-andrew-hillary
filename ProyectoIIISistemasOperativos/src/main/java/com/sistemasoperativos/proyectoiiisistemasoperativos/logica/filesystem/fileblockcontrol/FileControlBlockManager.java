@@ -133,7 +133,7 @@ public class FileControlBlockManager {
                 name,
                 UsersManager.getCurrentUser().getUserName(),
                 UsersManager.getCurrentUser().getUserName(),
-                7,
+                77,
                 true
         );
         int pointer = FindSpace();
@@ -437,19 +437,60 @@ public class FileControlBlockManager {
         throw new Exception("No se encontró el archivo");
     }
     
+    private static int ownerPerms(int perms) {
+        return perms / 10;   // primer dígito
+    }
+
+    private static int groupPerms(int perms) {
+        return perms % 10;   // segundo dígito
+    }
+
     public static boolean canRead(User user, Inode inode) {
-        if (!user.getUserName().equals(inode.getOwner())) return false;
-        return (inode.getPermissions() & 4) != 0;
+        int perms = inode.getPermissions();
+        int owner = ownerPerms(perms);
+        int group = groupPerms(perms);
+
+        if (user.getUserName().equals(inode.getOwner())) {
+            return (owner & 4) != 0;
+        }
+
+        if (user.getGroupID().equals(inode.getGroup())) {
+            return (group & 4) != 0;
+        }
+
+        return false;
     }
 
     public static boolean canWrite(User user, Inode inode) {
-        if (!user.getUserName().equals(inode.getOwner())) return false;
-        return (inode.getPermissions() & 2) != 0;
+        int perms = inode.getPermissions();
+        int owner = ownerPerms(perms);
+        int group = groupPerms(perms);
+
+        if (user.getUserName().equals(inode.getOwner())) {
+            return (owner & 2) != 0;
+        }
+
+        if (user.getGroupID().equals(inode.getGroup())) {
+            return (group & 2) != 0;
+        }
+
+        return false;
     }
 
     public static boolean canExecute(User user, Inode inode) {
-        if (!user.getUserName().equals(inode.getOwner())) return false;
-        return (inode.getPermissions() & 1) != 0;
+        int perms = inode.getPermissions();
+        int owner = ownerPerms(perms);
+        int group = groupPerms(perms);
+
+        if (user.getUserName().equals(inode.getOwner())) {
+            return (owner & 1) != 0;
+        }
+
+        if (user.getGroupID().equals(inode.getGroup())) {
+            return (group & 1) != 0;
+        }
+
+        return false;
     }
     
     public static String MV(String archivo, String destino) throws Exception{

@@ -54,7 +54,7 @@ public class CreadorBloqueControlArchivos {
                 "/",
                 "root",
                 "root",
-                7,
+                77,
                 true
         );
         
@@ -67,7 +67,7 @@ public class CreadorBloqueControlArchivos {
                 "home",
                 "root",
                 "root",
-                7,
+                77,
                 true
         );
         
@@ -80,7 +80,7 @@ public class CreadorBloqueControlArchivos {
                 "root",
                 "root",
                 "root",
-                7,
+                77,
                 true
         );
         
