@@ -375,8 +375,14 @@ public class FileControlBlockManager {
         if(node.isIsDirectory())
             throw new Exception("No se puede usar cat con un directorio");
         byte[] bytes = contenido.getBytes(StandardCharsets.UTF_8);
-        int pointer = DataBlocksManager.SaveData(bytes);
-        node.AddDirectBlock(pointer);
+        if(node.getDirectBlocks()[0] != -1){
+            int pointer = node.getDirectBlocks()[0];
+            DataBlocksManager.OverwriteData(pointer, bytes);
+        }
+        else{
+            int pointer = DataBlocksManager.SaveData(bytes);
+            node.AddDirectBlock(pointer);
+        }
         byte[] nodeSerialized = node.serialize();
         DiskConnector.WriteBlock(pointerStorage, nodeSerialized);
         return "Se ha guardado el contenido del archivo";
@@ -425,55 +431,6 @@ public class FileControlBlockManager {
         throw new Exception("No se encontró el archivo");
     }
     
- /*   public static String RM(String nombreArchivoDirectorio, boolean esRecursivo) throws Exception{
-        if(!canWrite(UsersManager.getCurrentUser(), CurrentDir))
-            throw new Exception("No tiene los permisos suficientes");
-        int[] punteros = CurrentDir.getDirectBlocks();
-        byte[] whiteBlock = new byte[256];
-        for(int indice = 0; indice < punteros.length; indice++){
-            int puntero = punteros[indice];
-            if(puntero == -1)
-                continue;
-            Inode nodo = DirTable.get(puntero);
-            if(nodo.getName().equals(nombreArchivoDirectorio)){
-                if(esRecursivo){
-                    RMRecursive(nodo, whiteBlock);
-                    byte[] serializado = nodo.serialize();
-                    DiskConnector.WriteBlock(Pointer, serializado);
-                }
-                else{
-                    RMNotRecursive(puntero, whiteBlock);
-                    punteros[indice] = -1;
-                    int punteroActual = CalculatePointerFather();
-                    byte[] actualSerializado = CurrentDir.serialize();
-                    DiskConnector.WriteBlock(punteroActual, actualSerializado);
-                }
-                return "Se ha eliminado el recurso";
-            }
-                
-        }
-        throw new Exception("No se encontró el archivo");
-    }
-    
-    private static void RMRecursive(Inode node, byte[] whiteBlock) throws Exception{
-        int[] directBlocks = node.getDirectBlocks();
-        for(int index = 0; index < directBlocks.length; index++){
-            int pointer = directBlocks[index];
-            if(pointer == -1)
-                continue;
-            Inode nodeAux = DirTable.get(pointer);
-            RMRecursive(nodeAux, whiteBlock);
-        }
-        for(int index = 0; index < directBlocks.length; index++){
-            int pointer = directBlocks[index];
-            if(pointer == -1)
-                continue;
-            DiskConnector.WriteBlock(pointer, whiteBlock);
-        }
-        for(int index = 0; index < directBlocks.length; index++)
-            directBlocks[index] = -1;
-    }
-    */
     private static void RMNotRecursive(int pointer, byte[] whiteBlock) throws Exception{
         DiskConnector.WriteBlock(pointer, whiteBlock);
     }

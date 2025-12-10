@@ -99,6 +99,58 @@ public class DataBlocksManager {
             current = next;
         }
     }
+    
+    public static int OverwriteData(int pointer, byte[] newData) throws Exception {
+        int payloadSize = BlockSize - 4;
+
+        // 1. Obtener la lista de bloques existentes
+        ArrayList<Integer> oldPointers = new ArrayList<>();
+        int current = pointer;
+
+        while (current != -1) {
+            oldPointers.add(current);
+            byte[] block = Storage.readBlock(current);
+
+            int next =
+                (block[0] & 0xFF) |
+                ((block[1] & 0xFF) << 8) |
+                ((block[2] & 0xFF) << 16) |
+                ((block[3] & 0xFF) << 24);
+
+            current = next;
+        }
+        int requiredBlocks = (int) Math.ceil((double) newData.length / payloadSize);
+        ArrayList<Integer> newPointers = new ArrayList<>();
+        int shared = Math.min(oldPointers.size(), requiredBlocks);
+        for (int i = 0; i < shared; i++) {
+            newPointers.add(oldPointers.get(i));
+        }
+        for (int i = shared; i < requiredBlocks; i++) {
+            int newPtr = FreeSpaceManager.allocate();
+            newPointers.add(newPtr);
+        }
+        for (int i = requiredBlocks; i < oldPointers.size(); i++) {
+            int idx = oldPointers.get(i);
+            int blockIndex = (idx - Pointer) / BlockSize;
+            FreeSpaceManager.free(blockIndex);
+        }
+        int dataIndex = 0;
+        for (int i = 0; i < requiredBlocks; i++) {
+            byte[] block = new byte[BlockSize];
+            int len = Math.min(payloadSize, newData.length - dataIndex);
+            System.arraycopy(newData, dataIndex, block, 4, len);
+            dataIndex += len;
+            int nextPtr = (i == requiredBlocks - 1) ? -1 : newPointers.get(i + 1);
+            block[0] = (byte) (nextPtr);
+            block[1] = (byte) (nextPtr >> 8);
+            block[2] = (byte) (nextPtr >> 16);
+            block[3] = (byte) (nextPtr >> 24);
+
+            Storage.writeBlock(newPointers.get(i), block);
+        }
+        return newPointers.get(0);
+    }
+
 
     public static int getPointer() {
         return Pointer;

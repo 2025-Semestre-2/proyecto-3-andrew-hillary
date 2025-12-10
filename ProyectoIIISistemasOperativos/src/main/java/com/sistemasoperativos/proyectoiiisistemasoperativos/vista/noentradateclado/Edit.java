@@ -55,6 +55,7 @@ public class Edit extends ComandoPadre {
         System.out.println("  :w    → guardar");
         System.out.println("  :q    → salir (guardar y salir)");
         System.out.println("  :x    → salir sin guardar");
+        System.out.println("  :d    → eliminar la ultima línea del archivo");
         System.out.println("-------------------------------------");
 
         if (contenido != null && !contenido.isEmpty()) {
@@ -79,7 +80,24 @@ public class Edit extends ComandoPadre {
             }
             else if (linea.equals(":x")) {
                 System.out.println("[Salida sin guardar]");
-                return contenido; // original
+                return contenido; 
+            } 
+            else if (linea.equals(":d")) {
+                if (buffer.length() > 0) {
+                    int lastNl = buffer.lastIndexOf("\n");
+
+                    if (lastNl == -1) {
+                        buffer = buffer.delete(0, buffer.length());
+                    } else {
+                        int secondLast = buffer.lastIndexOf("\n", lastNl - 1);
+                        if (secondLast == -1) {
+                            buffer = buffer.delete(0, buffer.length());
+                        } else {
+                            buffer = buffer.delete(secondLast, lastNl);
+                        }
+                    }
+                    System.out.println("[Última línea eliminada]");
+                }
             }
             else {
                 buffer.append(linea).append("\n");
