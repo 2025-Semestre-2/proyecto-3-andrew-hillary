@@ -100,12 +100,12 @@ public class FileControlBlockManager {
                 continue;
             message += "\t".repeat(tabs);
             Inode subNode = DirTable.get(pointer);
-            if(node.isIsDirectory()){
+            if(subNode.isIsDirectory()){
                 message += subNode.getName() + " - dir\n";
                 message += LSRecursive(subNode, tabs + 1);
             }
             else
-                message += "\t" + node.getName() + " - arch\n";
+                message += "\t" + subNode.getName() + " - arch\n";
         }
         return message;
     }
