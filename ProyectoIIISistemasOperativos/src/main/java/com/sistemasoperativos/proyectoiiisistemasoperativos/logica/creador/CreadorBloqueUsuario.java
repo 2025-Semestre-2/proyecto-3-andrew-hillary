@@ -24,7 +24,7 @@ public class CreadorBloqueUsuario {
     }
     
     private User CrearUsuarioRoot(String password){
-        User root = new User("root", "root", password);
+        User root = new User("root", "1", password);
         root.setGroupID("1");
         return root;
     }

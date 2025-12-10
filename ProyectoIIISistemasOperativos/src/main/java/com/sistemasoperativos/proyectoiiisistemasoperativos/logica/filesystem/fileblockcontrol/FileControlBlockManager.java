@@ -746,7 +746,7 @@ public class FileControlBlockManager {
 
         enlace.setFather(CalculatePointerFather());
 
-        // 5. Guardarlo como archivo normal (igual que touch)
+        // Guardarlo como archivo normal (igual que touch)
         int pointer = FindSpace();
         CurrentDir.AddDirectBlock(pointer);
 
@@ -789,7 +789,7 @@ public class FileControlBlockManager {
         actual = raizVisible;
         ruta = ruta.substring(1); 
         }else {
-            // Ruta relativa
+
             actual = CurrentDir;
         }
 

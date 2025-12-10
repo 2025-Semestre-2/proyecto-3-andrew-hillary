@@ -24,7 +24,7 @@ public class GroupsManager {
         byte[] groupSerialize = group.serialize();
         DiskConnector.WriteBlock(Pointer + (groupSerialize.length * Groups.size()), groupSerialize);
         Groups.add(group);
-        return "Se ha creado el grupo exitosamente";
+        return "Se ha creado el grupo exitosamente con el id " + id;
     }
     
     private static boolean VerifyExistsGroup(String name){
@@ -34,6 +34,33 @@ public class GroupsManager {
             }
         }
         return false;
+    }
+    
+    public static Group GetGroupByName(String name) throws Exception{
+        for (Group group : Groups) {
+            if(group.getGroupName().equals(name)){
+                return group;
+            }
+        }
+        throw new Exception("No se encontró el grupo");
+    }
+    
+    public static Group GetGroupById(String id) throws Exception{
+        for (Group group : Groups) {
+            if(group.getGroupID().equals(id)){
+                return group;
+            }
+        }
+        throw new Exception("No se encontró el grupo");
+    }
+    
+    public static String GetIDByName(String name) throws Exception{
+        for (Group group : Groups) {
+            if(group.getGroupName().equals(name)){
+                return group.getGroupID();
+            }
+        }
+        throw new Exception("No se encontró el ID");
     }
 
     public static int getPointer() {

@@ -55,6 +55,12 @@ public class CargadorBloqueControlArchivos {
         FileControlBlockManager.setDirList(Inodos);
         FileControlBlockManager.setAmountFCBs(cantidadBloques);
         FileControlBlockManager.setDirTable(DirTable);
+        for(Inode inode: Inodos){
+            if(inode.getName().equals("home")){
+                FileControlBlockManager.setHome(inode);
+                break;
+            }
+        }
     }
 
     public List<Inode> getInodos() {
