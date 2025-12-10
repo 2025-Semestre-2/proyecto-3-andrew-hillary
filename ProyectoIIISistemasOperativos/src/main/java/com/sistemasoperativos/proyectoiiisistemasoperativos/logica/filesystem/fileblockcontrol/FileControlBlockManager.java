@@ -62,6 +62,8 @@ public class FileControlBlockManager {
             if(node.getName().equals(to)){
                 if(!canRead(UsersManager.getCurrentUser(), node))
                     throw new Exception("No tiene los permisos suficientes");
+                if(!node.isIsDirectory())
+                    throw new Exception("No puede moverse a un archivo");
                 CurrentDir = node;
                 return "Se ha cambiado de directorio";
             }
@@ -105,7 +107,7 @@ public class FileControlBlockManager {
                 message += LSRecursive(subNode, tabs + 1);
             }
             else
-                message += "\t" + subNode.getName() + " - arch\n";
+                message += subNode.getName() + " - arch\n";
         }
         return message;
     }
@@ -612,61 +614,75 @@ public class FileControlBlockManager {
     }
 
     public static String RM(String nombre, boolean recursivo) throws Exception {
-
-        if (nombre.endsWith("/"))
-            nombre = nombre.replaceAll("/+$", "");
-
         int[] directBlocks = CurrentDir.getDirectBlocks();
-        Inode objetivo = null;
-        int pointerObjetivo = -1;
-
-        for (int ptr : directBlocks) {
-            if (ptr == -1) continue;
-
-            Inode hijo = DirTable.get(ptr);
-            if (hijo != null && hijo.getName().equals(nombre)) {
-                objetivo = hijo;
-                pointerObjetivo = ptr;
+        for(int indice = 0; indice < directBlocks.length; indice++){
+            int pointer = directBlocks[indice];
+            if(pointer == -1)
+                continue;
+            Inode node = DirTable.get(pointer);
+            if(node == null)
+                continue;
+            if(node.getName().equals(nombre)){
+                if(!canWrite(UsersManager.getCurrentUser(), node))
+                    throw new Exception("No tiene permisos para borrar.");
+                if(recursivo){
+                    RMRecursive(node);
+                    byte[] serialized = node.serialize();
+                    DiskConnector.WriteBlock(pointer, serialized);
+                }
+                else
+                    RMNotRecursive(node, pointer);
+                return "Se ha eliminado las carpetas y archivos";
+            }
+        }
+        throw new Exception("No existe el directorio o archivo");
+    }
+    
+    public static void RMNotRecursive(Inode inode, int pointer) throws Exception{
+        byte[] whiteBlock = new byte[256];
+        RMRecursive(inode);
+        DiskConnector.WriteBlock(pointer, whiteBlock);
+        int[] pointers = CurrentDir.getDirectBlocks();
+        for(int index = 0; index < pointers.length; index++){
+            int pointerSaved = pointers[index];
+            if(pointerSaved == pointer){
+                pointers[index] = -1;
                 break;
             }
         }
-
-        if (objetivo == null)
-            throw new Exception("El archivo/directorio '" + nombre + "' no existe.");
-
-        if (objetivo.isIsDirectory() && !recursivo)
-            throw new Exception("El directorio no está vacío o falta usar -R.");
-
-        borrarNodo(objetivo, pointerObjetivo, recursivo);
-
-        return "Se eliminó '" + nombre + "' correctamente.";
+        int pointerFather = CalculatePointerFather();
+        byte[] serialized = CurrentDir.serialize();
+        DiskConnector.WriteBlock(pointerFather, serialized);
     }
-
-
-    private static void borrarNodo(Inode nodo, int pointer, boolean recursivo) throws Exception {
-
-        if (nodo.isIsDirectory() && recursivo) {
-            for (int ptr : nodo.getDirectBlocks()) {
-                if (ptr == -1) continue;
-
-                Inode hijo = DirTable.get(ptr);
-                if (hijo != null) {
-                    borrarNodo(hijo, ptr, true);
-                }
-            }
+    
+    public static void RMRecursive(Inode inode) throws Exception{
+        byte[] whiteBlock = new byte[256];
+        if(!inode.isIsDirectory()){
+            int pointer = inode.getDirectBlocks()[0];
+            DataBlocksManager.FreeData(pointer);
+            return;
         }
-
-        for (int ptr : nodo.getDirectBlocks()) {
-            if (ptr != -1) {
-                DataBlocksManager.FreeData(ptr);   
-            }
+        for(int pointer: inode.getDirectBlocks()){
+            if(pointer == -1)
+                continue;
+            Inode subInode = DirTable.get(pointer);
+            if(subInode == null)
+                continue;
+            RMRecursive(subInode);
         }
-
-        CurrentDir.removeDirectBlock(pointer);
-        DiskConnector.WriteBlock(CurrentDir.getFather(), CurrentDir.serialize());
-        DirTable.remove(pointer);
-        DirList.remove(nodo);
-        FreeSpaceManager.freeFCB(pointer);
+        for(int pointer: inode.getDirectBlocks()){
+            if(pointer == -1)
+                continue;
+            Inode subInode = DirTable.get(pointer);
+            if(subInode == null)
+                continue;
+            DirTable.remove(pointer);
+            DirList.remove(subInode);
+            DiskConnector.WriteBlock(pointer, whiteBlock);
+        }
+        for(int index = 0; index < inode.getDirectBlocks().length; index++){
+            inode.getDirectBlocks()[index] = -1;
+        }
     }
 
     public static String Ln(String nombreLink, String rutaDestino) throws Exception {
