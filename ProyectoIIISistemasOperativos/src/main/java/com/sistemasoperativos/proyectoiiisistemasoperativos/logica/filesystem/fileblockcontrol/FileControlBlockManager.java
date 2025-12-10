@@ -685,49 +685,32 @@ public class FileControlBlockManager {
         }
     }
 
-    public static String Ln(String nombreLink, String rutaDestino) throws Exception {
+    private static Map<Integer, String> AliasNames = new HashMap<>();
 
+    public static String Ln(String nombreLink, String rutaDestino) throws Exception {
+    
         Inode destino = buscarPorRuta(rutaDestino);
         if (destino == null)
             throw new Exception("No existe el archivo destino: " + rutaDestino);
-
+    
         if (!canRead(UsersManager.getCurrentUser(), destino))
             throw new Exception("No tiene permisos para enlazar el archivo destino.");
-
-        if (VerifyName(nombreLink))
-            throw new Exception("Ya existe un archivo o directorio con ese nombre en este directorio.");
-
-        Inode enlace = new Inode(
-                NextID,
-                nombreLink,
-                UsersManager.getCurrentUser().getUserName(),
-                destino.getGroup(),
-                7,              
-                false           
-        );
-
-        String contenidoLink = rutaDestino;
-        int ptrData = DataBlocksManager.SaveData(contenidoLink.getBytes(StandardCharsets.UTF_8));
-        enlace.AddDirectBlock(ptrData);
-
-        enlace.setFather(CalculatePointerFather());
-
-        // Guardarlo como archivo normal (igual que touch)
-        int pointer = FindSpace();
-        CurrentDir.AddDirectBlock(pointer);
-
-        byte[] ser = enlace.serialize();
-        DiskConnector.WriteBlock(pointer, ser);
-
-        DirTable.put(pointer, enlace);
-        DirList.add(enlace);
-        NextID++;
-
-        // Actualizar directorio
-        DiskConnector.WriteBlock(enlace.getFather(), CurrentDir.serialize());
-
+    
+        int ptrDestino = getPointerOf(destino);
+    
+        // Inserta el puntero en este directorio
+        if (!CurrentDir.AddDirectBlock(ptrDestino))
+            throw new Exception("No hay espacio en el directorio.");
+    
+        // guardar el nombre original
+        AliasNames.put(ptrDestino, nombreLink);
+    
+        // Guardar estado del directorio
+        DiskConnector.WriteBlock(CalculatePointerFather(), CurrentDir.serialize());
+    
         return "Enlace creado: " + nombreLink + " -> " + rutaDestino;
     }
+
     
     public static Inode getHome() {
         return Home;
