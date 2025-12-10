@@ -5,6 +5,7 @@
 package com.sistemasoperativos.proyectoiiisistemasoperativos.logica.creador;
 
 import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.datos.Inode;
+import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem.fileblockcontrol.FileControlBlockManager;
 
 /**
  *
@@ -28,6 +29,7 @@ public class CreadorBloqueControlArchivos {
             espacio[indice] = 0;
         Inode raiz = CrearRaiz();
         Inode home = CrearHome();
+        FileControlBlockManager.setHome(home);
         Inode root = CrearCarpetaRoot();
         raiz.AddDirectBlock(PunteroActual + TamanoBloques);
         home.AddDirectBlock(PunteroActual + TamanoBloques * 2);

@@ -6,6 +6,7 @@ package com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem.u
 
 import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.datos.User;
 import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem.DiskConnector;
+import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem.fileblockcontrol.FileControlBlockManager;
 import java.util.List;
 
 /**
@@ -38,6 +39,7 @@ public class UsersManager {
         int nextIndex = Users.size();
         DiskConnector.WriteBlock(Pointer + (sizeBlock * nextIndex), userSerialized);
         Users.add(user);
+        FileControlBlockManager.CreateUserFolder(usuario);
         return "Se ha creado el usuario";
     }
     
