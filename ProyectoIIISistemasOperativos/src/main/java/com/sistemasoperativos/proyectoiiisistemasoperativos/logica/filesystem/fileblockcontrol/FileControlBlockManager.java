@@ -493,64 +493,75 @@ public class FileControlBlockManager {
         return false;
     }
     
-    public static String MV(String archivo, String destino) throws Exception{
-        if(!VerifyName(archivo))
-            throw new Exception("No existe el archivo a mover");
-        int punteroArch = 0;
-        Inode archivoInode = null;
-        int[] punteros = CurrentDir.getDirectBlocks();
-        for(int indice = 0; indice < punteros.length; indice++){
-            int puntero = punteros[indice];
-            if(puntero == -1)
-                continue;
-            Inode nodo = DirTable.get(puntero);
-            if(nodo.getName().equals(archivo)){
-                archivoInode = nodo;
-                punteroArch = puntero;
-                punteros[indice] = -1;
+    public static String MV(String origen, String destino) throws Exception {
+        //inode origen
+        int ptrOrigen = -1;
+        Inode inodeOrigen = null;
+
+        for (int ptr : CurrentDir.getDirectBlocks()) {
+            if (ptr == -1) continue;
+
+            Inode hijo = DirTable.get(ptr);
+            if (hijo != null && hijo.getName().equals(origen)) {
+                inodeOrigen = hijo;
+                ptrOrigen = ptr;
                 break;
             }
         }
-        if(destino.equals("../")){
-            int punteroPadre = CurrentDir.getFather();
-            Inode nodo = DirTable.get(punteroPadre);
-            nodo.AddDirectBlock(punteroArch);
-            byte[] serializado = nodo.serialize();
-            archivoInode.setFather(punteroPadre);
-            DiskConnector.WriteBlock(punteroPadre, serializado);
-            byte[] serializadoArchivo = archivoInode.serialize();
-            DiskConnector.WriteBlock(punteroArch, serializadoArchivo);
-            return "Se movió el archivo al padre";
-        }
-        else if(VerifyName(destino)){
-            int punteroDestino = 0;
-            Inode carpetaDestino = null;
-            for(int indice = 0; indice < punteros.length; indice++){
-                int puntero = punteros[indice];
-                if(puntero == -1)
-                    continue;
-                Inode nodo = DirTable.get(puntero);
-                if(nodo.getName().equals(destino)){
-                    carpetaDestino = nodo;
-                    punteroDestino = puntero;
-                    break;
-                }
+
+        if (inodeOrigen == null)
+            throw new Exception("El archivo/directorio '" + origen + "' no existe.");
+
+        //-----------------------------------------------------------------
+        // ¿DESTINO ES UN DIRECTORIO EXISTENTE?
+        //-----------------------------------------------------------------
+        Inode dirDestino = null;
+        int ptrDestino = -1;
+
+        for (int ptr : CurrentDir.getDirectBlocks()) {
+            if (ptr == -1) continue;
+
+            Inode hijo = DirTable.get(ptr);
+            if (hijo != null && hijo.isIsDirectory() && hijo.getName().equals(destino)) {
+                dirDestino = hijo;
+                ptrDestino = ptr;
+                break;
             }
-            carpetaDestino.AddDirectBlock(punteroArch);
-            archivoInode.setFather(punteroDestino);
-            byte[] carpetaDestinoSerializada = carpetaDestino.serialize();
-            DiskConnector.WriteBlock(punteroDestino, carpetaDestinoSerializada);
-            byte[] archivoSerializado = archivoInode.serialize();
-            DiskConnector.WriteBlock(punteroDestino, archivoSerializado);
-            return "Se ha movido al archivo a otra carpeta";
         }
-        else{
-            archivoInode.setName(destino);
-            byte[] serializado = archivoInode.serialize();
-            DiskConnector.WriteBlock(punteroArch, serializado);
-            return "Se renombró el archivo";
+
+        //-----------------------------------------------------------------
+        // CASO 1  MOVER A OTRO DIRECTORIO
+        //-----------------------------------------------------------------
+        if (dirDestino != null) {
+
+            // Quitar puntero del directorio actual
+            CurrentDir.removeDirectBlock(ptrOrigen);
+
+            // Agregar puntero al directorio destino
+            dirDestino.AddDirectBlock(ptrOrigen);
+
+            // Actualizar padre real del inode
+            inodeOrigen.setFather(ptrDestino);
+
+            // Guardar cambios en disco
+            DiskConnector.WriteBlock(ptrOrigen, inodeOrigen.serialize());
+            DiskConnector.WriteBlock(CalculatePointerFather(), CurrentDir.serialize());
+            DiskConnector.WriteBlock(ptrDestino, dirDestino.serialize());
+
+            return "Archivo movido al directorio " + destino;
         }
+
+        //-----------------------------------------------------------------
+        // CASO 2  RENOMBRAR (destino NO es carpeta)
+        //-----------------------------------------------------------------
+        inodeOrigen.setName(destino);
+
+        DiskConnector.WriteBlock(ptrOrigen, inodeOrigen.serialize());
+
+        return "Archivo renombrado a " + destino;
     }
+
+
 
     public static String Chgrp(String nuevoGrupo, String nombre, boolean recursivo) throws Exception {
 
@@ -751,6 +762,16 @@ public class FileControlBlockManager {
     
         return "Enlace creado: " + nombreLink + " -> " + rutaDestino;
     }
+    
+    private static int getPointerOf(Inode inode) throws Exception {
+        for (Map.Entry<Integer, Inode> entry : DirTable.entrySet()) {
+            if (entry.getValue() == inode) {
+                return entry.getKey();  // puntero al inode
+            }
+        }
+        throw new Exception("Error interno: puntero del inode no encontrado");
+    }
+
 
     
     public static Inode getHome() {

@@ -31,21 +31,32 @@ public class MV extends ComandoPadre {
         System.out.println("\n" + respuesta);
     }
     
-    private void ExtraerParametrosActuales(String comando) throws Exception{
+    private void ExtraerParametrosActuales(String comando) throws Exception {
+
         List<String> parametros = ExtraerParametros(comando);
+
+        // Validar SOLO el nombre del archivo origen
         EvaluarNombre(parametros.get(0));
         NombreArchivoDirectorio = parametros.get(0);
-        EvaluarNombre(parametros.get(1));
+
+        // El destino NO debe validarse, puede ser ruta
         NombreDestinoArchivoDirectorio = parametros.get(1);
     }
-    
-    private void EvaluarNombre(String nombre) throws Exception{
-        if(!nombre.matches("[A-Za-z0-9]+")){
+
+    private void EvaluarNombre(String nombre) throws Exception {
+        if (!nombre.matches("[A-Za-z0-9._-]+")) {
             throw new Exception("""
-                               Los nombres de archivs solo pueden contener los siguientes caracteres:
-                               \tLetras de la 'A' a la 'Z'
-                               \tLetras de la 'a' a la 'z'
-                               \tNúmeros del '0' al '9'\n""");
-        } 
+                    Los nombres de archivos solo pueden contener:
+                        Letras A-Z
+                        Letras a-z
+                        Números 0-9
+                        Puntos .
+                        Guion bajo _
+                        Guion -
+                    """);
+        }
     }
+
+
+
 }
