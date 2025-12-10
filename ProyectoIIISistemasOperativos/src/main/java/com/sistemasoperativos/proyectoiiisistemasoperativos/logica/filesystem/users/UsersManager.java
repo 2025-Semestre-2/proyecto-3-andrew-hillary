@@ -24,6 +24,9 @@ public class UsersManager {
             throw new Exception("La contraseña es incorrecta.");
         }
         CurrentUser = user;
+        if(username.equals(""))
+            username = "root";
+        FileControlBlockManager.SelectUserFolder(username);
         return "Inicio de sesión de exitoso.";
     }
     

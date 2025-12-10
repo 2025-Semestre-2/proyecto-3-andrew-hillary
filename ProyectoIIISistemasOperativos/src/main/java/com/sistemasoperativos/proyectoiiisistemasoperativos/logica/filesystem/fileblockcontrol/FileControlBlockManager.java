@@ -4,6 +4,7 @@
  */
 package com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem.fileblockcontrol;
 
+import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.datos.Group;
 import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.datos.Inode;
 import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.datos.User;
 import com.sistemasoperativos.proyectoiiisistemasoperativos.logica.filesystem.DiskConnector;
@@ -28,6 +29,7 @@ public class FileControlBlockManager {
     private static List<Inode> DirList;
     private static int NextID = 0;
     private static int AmountFCBs = 0;
+    private static Inode Home;
     
     public static String PWD(){
         String direction = "";
@@ -41,13 +43,13 @@ public class FileControlBlockManager {
     }
     
     public static String CD(String to) throws Exception{
-        if(!canRead(UsersManager.getCurrentUser(), CurrentDir))
-            throw new Exception("No tiene los permisos suficientes");
         if(to.equals("../")){
             int pointerFather = CurrentDir.getFather();
             if(pointerFather == -1)
                 throw new Exception("Estas en la carpeta raíz, no puedes ir más arriba");
             Inode father = DirTable.get(pointerFather);
+            if(!canRead(UsersManager.getCurrentUser(), father))
+                throw new Exception("No tiene los permisos suficientes");
             CurrentDir = father;
             return "Se ha cambiado de directorio";
         }
@@ -58,6 +60,8 @@ public class FileControlBlockManager {
                 continue;
             Inode node = DirTable.get(pointer);
             if(node.getName().equals(to)){
+                if(!canRead(UsersManager.getCurrentUser(), node))
+                    throw new Exception("No tiene los permisos suficientes");
                 CurrentDir = node;
                 return "Se ha cambiado de directorio";
             }
@@ -126,7 +130,7 @@ public class FileControlBlockManager {
                 NextID,
                 name,
                 UsersManager.getCurrentUser().getUserName(),
-                "",
+                UsersManager.getCurrentUser().getUserName(),
                 7,
                 true
         );
@@ -431,60 +435,6 @@ public class FileControlBlockManager {
         throw new Exception("No se encontró el archivo");
     }
     
-    /* 
-    public static String RM(String nombreArchivoDirectorio, boolean esRecursivo) throws Exception{
-        if(!canWrite(UsersManager.getCurrentUser(), CurrentDir))
-            throw new Exception("No tiene los permisos suficientes");
-        int[] punteros = CurrentDir.getDirectBlocks();
-        byte[] whiteBlock = new byte[256];
-        for(int indice = 0; indice < punteros.length; indice++){
-            int puntero = punteros[indice];
-            if(puntero == -1)
-                continue;
-            Inode nodo = DirTable.get(puntero);
-            if(nodo.getName().equals(nombreArchivoDirectorio)){
-                if(esRecursivo){
-                    RMRecursive(nodo, whiteBlock);
-                    byte[] serializado = nodo.serialize();
-                    DiskConnector.WriteBlock(Pointer, serializado);
-                }
-                else{
-                    RMNotRecursive(puntero, whiteBlock);
-                    punteros[indice] = -1;
-                    int punteroActual = CalculatePointerFather();
-                    byte[] actualSerializado = CurrentDir.serialize();
-                    DiskConnector.WriteBlock(punteroActual, actualSerializado);
-                }
-                return "Se ha eliminado el recurso";
-            }
-                
-        }
-        throw new Exception("No se encontró el archivo");
-    }
-    */
-    private static void RMRecursive(Inode node, byte[] whiteBlock) throws Exception{
-        int[] directBlocks = node.getDirectBlocks();
-        for(int index = 0; index < directBlocks.length; index++){
-            int pointer = directBlocks[index];
-            if(pointer == -1)
-                continue;
-            Inode nodeAux = DirTable.get(pointer);
-            RMRecursive(nodeAux, whiteBlock);
-        }
-        for(int index = 0; index < directBlocks.length; index++){
-            int pointer = directBlocks[index];
-            if(pointer == -1)
-                continue;
-            DiskConnector.WriteBlock(pointer, whiteBlock);
-        }
-        for(int index = 0; index < directBlocks.length; index++)
-            directBlocks[index] = -1;
-    }
-    
-    private static void RMNotRecursive(int pointer, byte[] whiteBlock) throws Exception{
-        DiskConnector.WriteBlock(pointer, whiteBlock);
-    }
-    
     public static boolean canRead(User user, Inode inode) {
         if (!user.getUserName().equals(inode.getOwner())) return false;
         return (inode.getPermissions() & 4) != 0;
@@ -595,7 +545,7 @@ public class FileControlBlockManager {
 
     private static void aplicarChgrpInterno(Inode nodo, String nuevoGrupo, boolean recursivo) throws Exception {
 
-        nodo.setGroup(nuevoGrupo);
+        nodo.setGroup(GroupsManager.GetIDByName(nuevoGrupo));
 
         int pointerReal = -1;
         for (Map.Entry<Integer, Inode> entry : DirTable.entrySet()) {
@@ -762,6 +712,26 @@ public class FileControlBlockManager {
 
         return "Enlace creado: " + nombreLink + " -> " + rutaDestino;
     }
+    
+    public static Inode getHome() {
+        return Home;
+    }
+    
+    public static void setHome(Inode Home) {
+        FileControlBlockManager.Home = Home;
+    }
+    
+    public static void CreateUserFolder(String name) throws Exception{
+        Inode current = CurrentDir;
+        setCurrentDir(Home);
+        int pointer = CalculatePointerFather();
+        CreateDir(name, pointer);
+        Chgrp(name, name, false);
+        Chown(name, name, false);
+        byte[] homeSerialized = Home.serialize();
+        DiskConnector.WriteBlock(pointer, homeSerialized);
+        CurrentDir = current;
+    }
 
     public static Inode buscarPorRuta(String ruta) throws Exception {
 
@@ -842,5 +812,8 @@ public class FileControlBlockManager {
         throw new RuntimeException("ERROR: No se encontró la raíz del filesystem");
     }
 
-    
+    public static void SelectUserFolder(String name) throws Exception{
+        CurrentDir = Home;
+        CD(name);
+    }
 }
