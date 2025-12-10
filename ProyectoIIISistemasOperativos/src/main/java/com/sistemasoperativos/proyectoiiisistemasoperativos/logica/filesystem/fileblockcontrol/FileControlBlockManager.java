@@ -243,7 +243,7 @@ public class FileControlBlockManager {
                 name,
                 UsersManager.getCurrentUser().getUserName(),
                 "",
-                6,
+                77,
                 false
         );
         int pointerFather = CalculatePointerFather();
@@ -425,7 +425,7 @@ public class FileControlBlockManager {
         throw new Exception("No se encontró el archivo");
     }
     
-    public static String RM(String nombreArchivoDirectorio, boolean esRecursivo) throws Exception{
+ /*   public static String RM(String nombreArchivoDirectorio, boolean esRecursivo) throws Exception{
         if(!canWrite(UsersManager.getCurrentUser(), CurrentDir))
             throw new Exception("No tiene los permisos suficientes");
         int[] punteros = CurrentDir.getDirectBlocks();
@@ -473,7 +473,7 @@ public class FileControlBlockManager {
         for(int index = 0; index < directBlocks.length; index++)
             directBlocks[index] = -1;
     }
-    
+    */
     private static void RMNotRecursive(int pointer, byte[] whiteBlock) throws Exception{
         DiskConnector.WriteBlock(pointer, whiteBlock);
     }
